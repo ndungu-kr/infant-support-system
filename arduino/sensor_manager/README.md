@@ -45,10 +45,10 @@ MOTION:1,TEMP:24.6,HUMIDITY:58.0,LIGHT:120,LOUDNESS:65,RFID:NONE
 | Temp/Humidity (DHT)    | D3   | f2_env_lcd         |
 | Light Sensor           | A0   | f2_env_lcd         |
 | Loudness Sensor        | A1   | f3_loudness_led    |
-| LED Bar                | D4   | f3_loudness_led    |
-| Buzzer                 | D5   | f4_rfid_buzzer     |
-| RFID Reader            | TBD  | f4_rfid_buzzer     |
-| LCD Display            | I2C  | f2_env_lcd         |
+| LED Bar                | TBD  | f3_loudness_led    |
+| Buzzer                 | TBD  | f4_rfid_buzzer     |
+| RFID Reader            | D6   | f4_rfid_buzzer     |
+| LCD Display            | TBD  | f2_env_lcd         |
 
 
 ## Libraries needed
