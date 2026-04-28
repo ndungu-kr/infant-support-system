@@ -1,0 +1,8 @@
+sudo apt update
+pip install numpy
+sudo apt install python3-opencv
+pip install dlib
+sudo apt install mosquitto mosquitto-clients -y
+sudo systemctl enable mosquitto   # auto-start on boot
+sudo systemctl start mosquitto # only for the first time
+sudo systemctl status mosquitto # verify its running

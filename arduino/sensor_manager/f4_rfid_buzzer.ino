@@ -8,14 +8,8 @@
 //             by commands from the Pi (escalation alerts).
 // ============================================
 
-
-#include <SoftwareSerial.h>
-
-const int RFID_RX = 6;
-const int RFID_TX = 7;
 // TODO: Add Buzzer pin 
 
-SoftwareSerial rfidSerial(RFID_RX, RFID_TX);
 
 String lastRFID = "NONE";
 bool rfidReady = false;
@@ -24,15 +18,15 @@ bool rfidReady = false;
 
 
 void setupRFID() {
-  rfidSerial.begin(9600);
+  Serial1.begin(9600);
 }
 
 void checkRFIDTap() {
-  if (rfidSerial.available()) {
+  if (Serial1.available()) {
     lastRFID = "";
     delay(100);  // wait for full tag to arrive
-    while (rfidSerial.available()) {
-      char c = rfidSerial.read();
+    while (Serial1.available()) {
+      char c = Serial1.read();
       if (c >= 32) {  // ignore control characters
         lastRFID += c;
       }
