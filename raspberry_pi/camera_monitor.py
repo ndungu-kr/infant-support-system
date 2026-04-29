@@ -126,6 +126,7 @@ class InfantMonitor:
 	def _on_mqtt_message(self, client, userdata, msg):
 		try:
 			data = json.loads(msg.payload.decode("utf-8"))
+			
 			with self._arduino_lock:
 				self._latest_noise = int(data.get("loudness",0))
 				self._node_red_trigger = bool(data.get("triggerCNN",0))
@@ -192,7 +193,8 @@ class InfantMonitor:
 					self.__node_red_trigger = False
 			else :
 				# return false if infant not present
-				self._print_to_node_red(False)
+				output = self._build_output(False)
+				self._print_to_node_red(output)
 				
 	@property
 	def _infant_presence(self):
