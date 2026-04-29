@@ -12,6 +12,7 @@
 
 
 String lastRFID = "NONE";
+
 bool rfidReady = false;
 
 // TODO: Buzzer state (controlled by Pi via serial commands)
