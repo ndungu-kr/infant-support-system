@@ -29,7 +29,7 @@ FPS = (33333, 33333) #30 fps
 # MQTT config
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
-MQTT_TOPIC = "infant/sensors"
+MQTT_TOPIC = "infant/camera/input"
 
 # Noise threshold to be consider crying
 NOISE_THRESHOLD = 500
@@ -127,8 +127,8 @@ class InfantMonitor:
 		try:
 			data = json.loads(msg.payload.decode("utf-8"))
 			with self._arduino_lock:
-				self._latest_noise = int(data.get("LOUDNESS",0))
-				# add the node red trigger here
+				self._latest_noise = int(data.get("loudness",0))
+				self._node_red_trigger = bool(data.get("triggerCNN",0))
 				
 		except:
 			pass
@@ -186,6 +186,13 @@ class InfantMonitor:
 				# return the result immediately
 				output = self._build_output(motion)
 				self._print_to_node_red(output)
+				
+				#set it back to false as this function is only call once per trigger
+				with self._arduino_lock:
+					self.__node_red_trigger = False
+			else :
+				# return false if infant not present
+				self._print_to_node_red(False)
 				
 	@property
 	def _infant_presence(self):
