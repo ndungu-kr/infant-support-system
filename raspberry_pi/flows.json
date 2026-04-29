@@ -130,7 +130,7 @@
             [
                 "489e116733c660c7",
                 "f07bd59c4c409f5a",
-                "85ed207c2ccec6bb"
+                "2e3b4d370f356ac2"
             ]
         ]
     },
@@ -148,8 +148,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 860,
-        "y": 180,
+        "x": 920,
+        "y": 340,
         "wires": []
     },
     {
@@ -164,8 +164,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 860,
-        "y": 280,
+        "x": 920,
+        "y": 440,
         "wires": [
             [
                 "43eb37d902384428"
@@ -201,8 +201,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1110,
-        "y": 180,
+        "x": 1170,
+        "y": 340,
         "wires": []
     },
     {
@@ -219,8 +219,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1110,
-        "y": 240,
+        "x": 1170,
+        "y": 400,
         "wires": []
     },
     {
@@ -237,8 +237,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1110,
-        "y": 300,
+        "x": 1170,
+        "y": 460,
         "wires": []
     },
     {
@@ -255,8 +255,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1110,
-        "y": 360,
+        "x": 1170,
+        "y": 520,
         "wires": []
     },
     {
@@ -273,8 +273,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1110,
-        "y": 420,
+        "x": 1170,
+        "y": 580,
         "wires": []
     },
     {
@@ -291,8 +291,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1110,
-        "y": 120,
+        "x": 1170,
+        "y": 280,
         "wires": []
     },
     {
@@ -311,8 +311,8 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 1190,
-        "y": 500,
+        "x": 1250,
+        "y": 660,
         "wires": [
             []
         ]
@@ -329,12 +329,50 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 890,
-        "y": 460,
+        "x": 950,
+        "y": 620,
         "wires": [
             [
                 "7c57663027be9c5d"
             ]
         ]
+    },
+    {
+        "id": "2e3b4d370f356ac2",
+        "type": "function",
+        "z": "6236dbe166d9dd7a",
+        "name": "Camera Input Builder",
+        "func": "var data = msg.payload;\nvar now = Date.now();\n\n// Track how long PIR has detected no motion\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\n\nif (data.MOTION === 0) {\n    pirNoMotionSeconds += 2;  // loop runs every 2 seconds\n} else {\n    pirNoMotionSeconds = 0;\n}\nflow.set(\"pirNoMotionSeconds\", pirNoMotionSeconds);\n\n// Decide whether to trigger CNN\n// Only trigger once when we cross the threshold, not every cycle after\nvar CNN_TRIGGER_SECONDS = 15;  // adjust after testing\nvar lastCNNTriggerTime = flow.get(\"lastCNNTriggerTime\") || 0;\nvar triggerCNN = false;\n\nif (pirNoMotionSeconds >= CNN_TRIGGER_SECONDS) {\n    // Only trigger every CNN_TRIGGER_SECONDS, not every 2 seconds\n    if (now - lastCNNTriggerTime >= CNN_TRIGGER_SECONDS * 1000) {\n        triggerCNN = true;\n        flow.set(\"lastCNNTriggerTime\", now);\n    }\n}\n\nmsg.payload = {\n    loudness: data.LOUDNESS,\n    triggerCNN: triggerCNN\n};\n\nmsg.topic = \"infant/camera/input\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 200,
+        "wires": [
+            [
+                "5bf15bca692a612b"
+            ]
+        ]
+    },
+    {
+        "id": "5bf15bca692a612b",
+        "type": "mqtt out",
+        "z": "6236dbe166d9dd7a",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5849c4ed40467e70",
+        "x": 1170,
+        "y": 160,
+        "wires": []
     }
 ]
