@@ -336,6 +336,7 @@ class InfantMonitor:
 		
 		if key != last_key:
 			print(json.dumps(output),flush=True)
+			self._mqtt_client.publish("infant/camera", json.dumps(output))
 			self._last_printed = output.copy()
 		
 	def _debug_print(self, frame_rgb):
