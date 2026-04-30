@@ -7,16 +7,16 @@ import sys
 import cv2
 import dlib
 import numpy as np
-import serial
 from picamera2 import Picamera2
 
 """
 Infant Monitor
 
- feature : detect if infant is moving, if infant havent move for x second, send alert
- feature : detect infant presence by checking if the head is on camera
- feature : detect infant facial feature (eyes and mouth) to determine if the infant is sleeping, awake, or crying 
+ feature 1: detect infant facial feature (eyes and mouth) to determine if the infant is sleeping, awake, or crying 
  (for crying, the infant needs to open their mouth and the noise detector needs to exceed the noise threshold to be consider crying)
+ 
+ feature 2: (only when trigger by node red) first, detect infant presence by checking if the head is on camera using dlib cnn (for higher accuracy)
+			if the infant is presence, detect if infant is moving, if infant havent move for x second, send alert
 """
 
 # Configuration
@@ -29,7 +29,7 @@ FPS = (33333, 33333) #30 fps
 # MQTT config
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
-MQTT_TOPIC = "infant/sensors"
+MQTT_TOPIC = "infant/camera/input"
 
 # Noise threshold to be consider crying
 NOISE_THRESHOLD = 500
@@ -37,14 +37,15 @@ NOISE_THRESHOLD = 500
 # Motion detection config
 MOTION_THRESHOLD = RESOLUTION[0] * RESOLUTION[1] * 0.05 # if the number of pixels change more than this = infant move
 
-# Stillness alert
-STILLNESS_ALERT_SEC = 5.0 # if infant have not moved for x seconds = alert something is wrong
+# Motion detection time
+MOTION_DETECTION_SEC = 5.0 # the motion detector will run for x sec and if infant did not move at all during that time = return alert
 
-#dlib HOG & Motion detection interval
-MAIN_CHECK_INTERVAL_SEC = 1 # Run motion detection + HOG + landmarks to check for eyes and mouth every x second
+# Run motion detection (only when triggered) & HOG + landmarks to check for eyes and mouth every x second
+MAIN_CHECK_INTERVAL_SEC = 1 
 
 #dlib CNN interval
-CNN_INTERVAL_SEC = 30.0 # Run CNN (which is more accurate than HOG) to check if the infant is on screen every x second
+CNN_INTERVAL_SEC = 300.0 # Run CNN (which is more accurate than HOG) to check if the infant is on screen every x second
+ACCEPTABLE_ASSUMPTION_RANGE_SEC = 10.0 # IF CNN is called x second ago, assume that the result still stands
 
 # Face state threshold
 EAR_THRESHOLD = 0.2 # Eye aspect ratio above this = eye opened
@@ -74,9 +75,12 @@ class InfantMonitor:
 		self._camera.start()
 		time.sleep(2) # Let auto-exposure settle before processing begins
 		
-		# noise value received from MQTT client
+		# arduino sensors
+		self._arduino_lock = threading.Lock()
+		# noise value
 		self._latest_noise = 0
-		self._noise_lock = threading.Lock()
+		# node red trigger process
+		self._node_red_trigger = False
 		
 		# MQTT client - loop_start() will run a background thread automatically
 		self._mqtt_client = mqtt.Client()
@@ -98,14 +102,17 @@ class InfantMonitor:
 		self._cnn_thread.start()
 		
 		# motion state
+		self._hist_lock = threading.Lock()
 		self._prev_eq_hist = None
-		self._last_motion_time = time.time()
+		self._current_eq_hist = None
 		
 		# HOG timer
 		self._last_hog_time = 0.0
 		self._current_face_state = "none"
+		self._is_crying = False
 		
 		# CNN scheduling timer
+		self._cnn_time_lock = threading.Lock()
 		self._last_cnn_time = 0.0
 		
 		# prevent duplicate output
@@ -115,22 +122,31 @@ class InfantMonitor:
 	def _on_mqtt_connect(self, client, userdata, flags, rc):
 		if rc ==0:
 			client.subscribe(MQTT_TOPIC)
+			
 	def _on_mqtt_message(self, client, userdata, msg):
 		try:
 			data = json.loads(msg.payload.decode("utf-8"))
-			with self._noise_lock:
-				self._latest_noise = int(data.get("LOUDNESS",0))
+			
+			with self._arduino_lock:
+				self._latest_noise = int(data.get("loudness",0))
+				self._node_red_trigger = bool(data.get("triggerCNN",0))
+				
 		except:
 			pass
 	
 	@property
 	def _noise(self):
-		with self._noise_lock:
+		with self._arduino_lock:
 			return self._latest_noise
+			
+	@property
+	def _trigger_process(self):
+		with self._arduino_lock:
+			return self._node_red_trigger
 
 # WORKER THREADS----------------------------------------------------------
 
-	# background thread for dlib cnn
+	# background thread for dlib cnn and motion detection
 	def _cnn_worker(self):
 		while self._cnn_running:
 			self._cnn_trigger.wait() #sleeps until it is called
@@ -139,28 +155,56 @@ class InfantMonitor:
 			if not self._cnn_running:
 				break
 			
-			with self._cnn_frame_lock:
-				frame = self._cnn_frame
-				
-			if frame is None:
-				continue
-				
-			# downscale the frame into a smaller one to improve efficiency as we are only using it to check if the toddler is on screen
-			h, w = frame.shape[:2]
-			scale = 320/w
-			small = cv2.resize(frame, (320, int(h * scale)))
-			small = np.ascontiguousarray(small[:, :, :3], dtype=np.uint8)
+			now = time.time()
 			
-			detections = self._cnn_detector(small,1)
-			
-			result = "infant_present" if len(detections) > 0 else "not_found"
-			with self._cnn_result_lock:
-				self._cnn_result = result
+			if now - self._cnn_time >= ACCEPTABLE_ASSUMPTION_RANGE_SEC:
+				
+				with self._cnn_frame_lock:
+					frame = self._cnn_frame
+					
+				if frame is None:
+					continue
+					
+				# downscale the frame into a smaller one to improve efficiency as we are only using it to check if the toddler is on screen
+				h, w = frame.shape[:2]
+				scale = 320/w
+				small = cv2.resize(frame, (320, int(h * scale)))
+				small = np.ascontiguousarray(small[:, :, :3], dtype=np.uint8)
+				
+				detections = self._cnn_detector(small,1)
+				
+				result = "infant_present" if len(detections) > 0 else "not_found"
+				with self._cnn_result_lock:
+					self._cnn_result = result
+				with self._cnn_time_lock:
+					self._last_cnn_time = now
+					
+				print("calling cnn")
+			# motion detection is only triggered whenever node red triggers this thread and cnn detected infant is present
+			if self._trigger_process and result == "infant_present":
+				motion = self._handle_motion()
+				
+				# return the result immediately
+				output = self._build_output(motion)
+				self._print_to_node_red(output)
+				
+				#set it back to false as this function is only call once per trigger
+				with self._arduino_lock:
+					self.__node_red_trigger = False
+			else :
+				# return false if infant not present
+				output = self._build_output(False)
+				self._print_to_node_red(output)
 				
 	@property
 	def _infant_presence(self):
 		with self._cnn_result_lock:
 			return self._cnn_result
+			
+	@property
+	def _cnn_time(self):
+		with self._cnn_time_lock:
+			return self._last_cnn_time
 			
 # HOG + LANDMARK DETECTION ----------------------------------------------------------------------------
 
@@ -207,9 +251,11 @@ class InfantMonitor:
 		if len(dets) ==0:
 			dets = self._hog_detector(gray_frame,1)
 			use_frame = gray_frame
-			
+		
+		# if no face is detected
 		if len(dets) ==0:
-			return "face_not_visible"
+			self._current_face_state = "face_not_visible"
+			return None
 			
 		# in case there is more than one face detected (could be false positive), choose the largest one
 		det = max(dets, key=lambda d: (d.right() - d.left()) * (d.bottom() - d.top()))
@@ -217,7 +263,8 @@ class InfantMonitor:
 		shape = self._landmark_predictor(use_frame, det)
 		
 		if not self._both_eyes_visible(shape):
-			return "face_not_visible"
+			self._current_face_state = "face_not_visible"
+			return None
 		
 		# Eyes
 		ear = (self._eye_aspect_ratio(shape, left=True) + self._eye_aspect_ratio(shape, left=False)) / 2.0
@@ -227,12 +274,15 @@ class InfantMonitor:
 		
 		# if mouth is open and noise level exceed threshold = crying
 		if mar > MAR_THRESHOLD and noise_level >= NOISE_THRESHOLD:
-			return "crying"
-		
+			self._is_crying = True
+		else:
+			self._is_crying = False
+					
 		#if eye lower than threshold = sleeping, else awake
 		if ear < EAR_THRESHOLD:
-			return "sleeping"
-		return "awake"
+			self._current_face_state = "sleeping"
+		else:
+			self._current_face_state = "awake"
 		
 # Motion Detection -------------------------------------------------------------------
 	# comparing the difference between consecutive histogram-equalised frames and return the number of changed pixel.
@@ -249,33 +299,35 @@ class InfantMonitor:
 		return score
 		
 	# if the number of changed pixel exceed motion threshold = the infant moved
-	# if the infant havent moved for more than STILLNESS_ALERT_SEC, return alert
-	def _handle_motion(self, score):
-		now = time.time()
+	def _handle_motion(self):
+		start = time.time()
 		
-		if score > MOTION_THRESHOLD:
-			self._last_motion_time = now
-			return "moving"
+		# keep running for x second, or until it found the something has moved in the camera. it also have the same amount of interval time for each call as the hog
+		while time.time() - start <= MOTION_DETECTION_SEC:
+			with self._hist_lock:
+				frame = self._current_eq_hist
 			
-		still_duration = now - self._last_motion_time
+			score = self._compute_motion_score(frame)
+			
+			if score > MOTION_THRESHOLD:
+				return True
+			
+			time.sleep(MAIN_CHECK_INTERVAL_SEC)
 		
-		if still_duration >= STILLNESS_ALERT_SEC and self._infant_presence == "infant_present":
-			return "still_alert"
-		
-		return "still"
+		return False
 		
 # OUTPUT---------------------------------------------------
-	def _build_output(self, motion, noise_level):
+	def _build_output(self, motion):
 		return {
 			"presence": self._infant_presence,
-			"face_state": self._current_face_state,
-			"motion": motion,
-			"noise": noise_level
+			"state": self._current_face_state,
+			"crying": self._is_crying,
+			"cameraMotion": motion
 			}
 	
 	# used for comparing with the previous output key value
 	def _output_key(self, output):
-		return (output["presence"], output["face_state"], output["motion"])
+		return (output["presence"], output["state"], output["cameraMotion"], output["crying"])
 	
 	# if it is not the same as previous output, print json to
 	def _print_to_node_red(self, output):
@@ -284,6 +336,7 @@ class InfantMonitor:
 		
 		if key != last_key:
 			print(json.dumps(output),flush=True)
+			self._mqtt_client.publish("infant/camera", json.dumps(output))
 			self._last_printed = output.copy()
 		
 	def _debug_print(self, frame_rgb):
@@ -312,26 +365,24 @@ class InfantMonitor:
 				# pass the frame to CNN thread
 				with self._cnn_frame_lock:
 					self._cnn_frame = frame.copy()
+				with self._hist_lock:
+					self._current_eq_hist = equalised
 					
-				# schedule CNN trigger if time has passed CNN_INTERVAL_SEC
-				if now - self._last_cnn_time >= CNN_INTERVAL_SEC:
-					self._last_cnn_time = now
+				# schedule CNN trigger if time has passed CNN_INTERVAL_SEC or it has been triggered by node red
+				if now - self._cnn_time >= CNN_INTERVAL_SEC or self._trigger_process:
 					self._cnn_trigger.set()
 					
 				if now - self._last_hog_time >= MAIN_CHECK_INTERVAL_SEC:
-					# motion detection
-					score = self._compute_motion_score(equalised)
-					motion = self._handle_motion(score)
 				
 					# read latest noise from Arduino
 					noise_level = self._noise
 				
 					# HOG + landmarks 
 					self._last_hog_time = now
-					self._current_face_state = self._run_hog_landmarks(gray, noise_level)
+					self._run_hog_landmarks(gray, noise_level)
 					
 					# output
-					output = self._build_output(motion, noise_level)
+					output = self._build_output(None)
 				
 					self._print_to_node_red(output)
 				
