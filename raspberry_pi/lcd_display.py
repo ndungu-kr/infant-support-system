@@ -76,13 +76,13 @@ def on_message(client, userdata, msg):
 
 if __name__ == "__main__":
     initRGB()
-	setRGB(255,255,0) #Yellow at startup before connecting
-	setText("CONNECTING...\n")
-	
-	client = mqtt.Client()
-	client.on_connect = on_connect
-	client.on_message = on_message
-	
-	client.connect(MQTT_BROKER, MQTT_PORT)
-	client.loop_forever()
+    setRGB(255,255,0) #Yellow at startup before connecting
+    setText("CONNECTING...\n")
+    
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    
+    client.connect(MQTT_BROKER, MQTT_PORT)
+    client.loop_forever()
 	
