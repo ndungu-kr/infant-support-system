@@ -20,14 +20,12 @@ MQTT_TOPIC = "infant/env"
 
 def setRGB(r, g, b):
     try:
-        bus.write_byte_data(0x30, 0x00, 0x00)  # MODE1
-        bus.write_byte_data(0x30, 0x01, 0x00)  # MODE2
-        bus.write_byte_data(0x30, 0x02, b)      # Blue
-        bus.write_byte_data(0x30, 0x03, g)      # Green
-        bus.write_byte_data(0x30, 0x04, r)      # Red
-        bus.write_byte_data(0x30, 0x05, 0xFF)   # GRPPWM
-        bus.write_byte_data(0x30, 0x06, 0x00)   # GRPFREQ
-        bus.write_byte_data(0x30, 0x07, 0xFF)   # LEDOUT - this enables the LEDs
+        bus.write_byte_data(0x30, 0x00, 0x07)  # reset the chip
+        time.sleep(0.001)
+        bus.write_byte_data(0x30, 0x04, 0x15)  # set all LEDs always on
+        bus.write_byte_data(0x30, 0x06, r)      # red
+        bus.write_byte_data(0x30, 0x07, g)      # green
+        bus.write_byte_data(0x30, 0x08, b)      # blue
     except Exception as e:
         print(f"RGB error: {e}")
  
