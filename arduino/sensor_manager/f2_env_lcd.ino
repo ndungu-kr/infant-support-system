@@ -1,5 +1,5 @@
 // ============================================
-// FEATURE 2 - Environmental Monitoring
+// FEATURE 2 - Environmental Monitoring + LCD
 // ============================================
 // Components: Temperature/Humidity Sensor (DHT11 or DHT22)
 //             Light Sensor
@@ -14,6 +14,10 @@ DHT dht(DHT_PIN, DHT11);
 
 void setupEnvSensors() {
   pinMode(LIGHT_PIN, INPUT);
+
+  // Initialise DHT sensor
+  dht.begin();
+
 }
 
 float readTemperature() {

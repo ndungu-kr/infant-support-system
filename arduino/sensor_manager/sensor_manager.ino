@@ -32,6 +32,7 @@ void setup() {
   setupEnvSensors();    // Feature 2 - f2_env_lcd.ino
   setupLoudness();      // Feature 3 - f3_loudness_led.ino
   setupRFID();          // Feature 4 - f4_rfid_buzzer.ino
+  setupLoudness();
 
   Serial.println("STATUS:READY");
 }
@@ -56,7 +57,11 @@ void loop() {
 
     // --- Update actuators based on readings ---
     updateLEDBar(loudness);                 // Feature 3 - show noise level
-
+    
+    // --- If RFID tapped, stop buzzer immediately ---
+    if (rfid != "NONE"){
+      stopBuzzer();
+    }
 
     // --- Send all sensor data to Pi as JSON ---
     JSONVar doc;
@@ -75,7 +80,7 @@ void loop() {
   checkRFIDTap();       // Feature 4 - runs every loop, not just every second
 
   // Check buzzer escalation
-  //updateBuzzer();       // Feature 4 - handles buzzer timing
+  updateBuzzer();       // Feature 4 - handles buzzer timing
 }
 
 // Serial command reading ------------------------------------
