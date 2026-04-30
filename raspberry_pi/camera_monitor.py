@@ -329,14 +329,16 @@ class InfantMonitor:
 	def _output_key(self, output):
 		return (output["presence"], output["state"], output["cameraMotion"], output["crying"])
 	
-	# if it is not the same as previous output, print json to
 	def _print_to_node_red(self, output):
 		key = self._output_key(output)
 		last_key = self._output_key(self._last_printed) if self._last_printed else None
-		
+    
+		# Always publish to MQTT so Node-RED gets continuous updates
+		self._mqtt_client.publish("infant/camera", json.dumps(output))
+    
+		# Only print to terminal when something changes
 		if key != last_key:
-			print(json.dumps(output),flush=True)
-			self._mqtt_client.publish("infant/camera", json.dumps(output))
+			print(json.dumps(output), flush=True)
 			self._last_printed = output.copy()
 		
 	def _debug_print(self, frame_rgb):
