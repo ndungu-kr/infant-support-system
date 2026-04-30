@@ -19,12 +19,15 @@ MQTT_TOPIC = "infant/env"
 # FUNCTIONS---------------------
 
 def setRGB(r, g, b):
-    # V5.0 only has on/off backlight, not RGB
-    # Any non-zero value turns it on
     try:
-        bus.write_byte_data(DISPLAY_TEXT_ADDR, 0x08, 0x08)
-    except:
-        pass
+        bus.write_byte_data(0x30, 0x00, 0x00)
+        bus.write_byte_data(0x30, 0x01, 0x00)
+        bus.write_byte_data(0x30, 0x08, 0xFF)
+        bus.write_byte_data(0x30, 0x04, r)
+        bus.write_byte_data(0x30, 0x03, g)
+        bus.write_byte_data(0x30, 0x02, b)
+    except Exception as e:
+        print(f"RGB error: {e}")
  
 # send command to display (no need for external use)    
 def textCommand(cmd):
