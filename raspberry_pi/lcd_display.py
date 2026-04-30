@@ -5,8 +5,8 @@ import smbus
 import paho.mqtt.client as mqtt
 
 # Config-------------------
-LCD_ADDRESS = 0x3E
-RGB_ADDRESS = 0x62
+DISPLAY_TEXT_ADDR = 0x3E
+DISPLAY_RGB_ADDR = 0x62
 I2C_BUS = 1
 
 bus = smbus.SMBus(I2C_BUS)
@@ -73,7 +73,7 @@ def on_message(client, userdata, msg):
 	
 # Main ------------------------------
 
-if name == "__main__":
+if __name__ == "__main__":
 	setRGB(255,255,0) #Yellow at startup before connecting
 	setText("CONNECTING...\n")
 	
