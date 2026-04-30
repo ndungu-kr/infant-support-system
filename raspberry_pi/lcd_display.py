@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 
 # Config-------------------
 DISPLAY_TEXT_ADDR = 0x3E
-DISPLAY_RGB_ADDR = 0x62
+DISPLAY_RGB_ADDR = 0x30
 I2C_BUS = 1
 
 bus = smbus.SMBus(I2C_BUS)
