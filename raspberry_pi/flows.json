@@ -8,6 +8,14 @@
         "env": []
     },
     {
+        "id": "dfe489091e32acbc",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "5849c4ed40467e70",
         "type": "mqtt-broker",
         "name": "",
@@ -117,7 +125,7 @@
         "type": "function",
         "z": "6236dbe166d9dd7a",
         "name": "Parse Sensor Data",
-        "func": "var line = msg.payload.trim();\n\n// Ignore startup messages or empty lines\nif (!line.includes(\"MOTION:\")) {\n    return null;\n}\n\nvar parsed = {};\nvar pairs = line.split(\",\");\n\nfor (var i = 0; i < pairs.length; i++) {\n    var parts = pairs[i].split(\":\");\n    if (parts.length === 2) {\n        var key = parts[0].trim();\n        var value = parts[1].trim();\n\n        // Convert numbers, leave strings as strings\n        if (key === \"RFID\") {\n            parsed[key] = value;\n        } else {\n            parsed[key] = parseFloat(value);\n        }\n    }\n}\n\nmsg.payload = parsed;\nreturn msg;",
+        "func": "var line = msg.payload.trim();\n\n// Ignore startup messages or empty lines\nif (!line.includes(\"MOTION:\")) {\n    return null;\n}\n\nvar parsed = {};\nvar pairs = line.split(\",\");\n\nfor (var i = 0; i < pairs.length; i++) {\n    var parts = pairs[i].split(\":\");\n    if (parts.length === 2) {\n        var key = parts[0].trim();\n        var value = parts[1].trim();\n\n        // Convert numbers, leave strings as strings\n        if (key === \"RFID\") {\n            parsed[key] = value;\n        } else {\n            parsed[key] = parseFloat(value);\n        }\n    }\n}\n\nmsg.payload = parsed;\nflow.set(\"sensorData\", msg.payload);\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -129,8 +137,9 @@
         "wires": [
             [
                 "489e116733c660c7",
-                "f07bd59c4c409f5a",
-                "2e3b4d370f356ac2"
+                "2e3b4d370f356ac2",
+                "6f8df106b6edcec4",
+                "fc034282318b29b9"
             ]
         ]
     },
@@ -148,151 +157,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 920,
+        "x": 880,
         "y": 340,
-        "wires": []
-    },
-    {
-        "id": "f07bd59c4c409f5a",
-        "type": "function",
-        "z": "6236dbe166d9dd7a",
-        "name": "Split to Topics",
-        "func": "var data = msg.payload;\n\nvar motion = {payload: data.MOTION, topic:\"infant/sensors/motion\"};\nvar temp = {payload: data.TEMP, topic: \"infant/sensors/temperature\"};\nvar humidity = {payload: data.HUMIDITY, topic: \"infant/sensors/humidity\"};\nvar light = {payload: data.LIGHT, topic: \"infant/sensors/light\"};\nvar loudness = { payload: data.LOUDNESS, topic: \"infant/sensors/loudness\"};\nvar rfid = {payload: data.RFID, topic: \"infant/sensors/rfid\"};\n\nreturn [motion, temp, humidity, light, loudness, rfid];",
-        "outputs": 6,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 920,
-        "y": 440,
-        "wires": [
-            [
-                "43eb37d902384428"
-            ],
-            [
-                "76a47b5b65070c6c"
-            ],
-            [
-                "d7b2b97ae3a6f7ef"
-            ],
-            [
-                "57e0aa475ae4675c"
-            ],
-            [
-                "9d7d32005e1f3fbf"
-            ],
-            [
-                "98848ed2e8e99b59"
-            ]
-        ]
-    },
-    {
-        "id": "76a47b5b65070c6c",
-        "type": "mqtt out",
-        "z": "6236dbe166d9dd7a",
-        "name": "",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5849c4ed40467e70",
-        "x": 1170,
-        "y": 340,
-        "wires": []
-    },
-    {
-        "id": "d7b2b97ae3a6f7ef",
-        "type": "mqtt out",
-        "z": "6236dbe166d9dd7a",
-        "name": "",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5849c4ed40467e70",
-        "x": 1170,
-        "y": 400,
-        "wires": []
-    },
-    {
-        "id": "57e0aa475ae4675c",
-        "type": "mqtt out",
-        "z": "6236dbe166d9dd7a",
-        "name": "",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5849c4ed40467e70",
-        "x": 1170,
-        "y": 460,
-        "wires": []
-    },
-    {
-        "id": "9d7d32005e1f3fbf",
-        "type": "mqtt out",
-        "z": "6236dbe166d9dd7a",
-        "name": "",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5849c4ed40467e70",
-        "x": 1170,
-        "y": 520,
-        "wires": []
-    },
-    {
-        "id": "98848ed2e8e99b59",
-        "type": "mqtt out",
-        "z": "6236dbe166d9dd7a",
-        "name": "",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5849c4ed40467e70",
-        "x": 1170,
-        "y": 580,
-        "wires": []
-    },
-    {
-        "id": "43eb37d902384428",
-        "type": "mqtt out",
-        "z": "6236dbe166d9dd7a",
-        "name": "",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5849c4ed40467e70",
-        "x": 1170,
-        "y": 280,
         "wires": []
     },
     {
@@ -311,8 +177,8 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 1250,
-        "y": 660,
+        "x": 1210,
+        "y": 460,
         "wires": [
             []
         ]
@@ -329,8 +195,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 950,
-        "y": 620,
+        "x": 910,
+        "y": 420,
         "wires": [
             [
                 "7c57663027be9c5d"
@@ -349,8 +215,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 920,
-        "y": 200,
+        "x": 900,
+        "y": 100,
         "wires": [
             [
                 "5bf15bca692a612b"
@@ -371,8 +237,474 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1170,
-        "y": 160,
+        "x": 1110,
+        "y": 100,
         "wires": []
+    },
+    {
+        "id": "6f8df106b6edcec4",
+        "type": "function",
+        "z": "6236dbe166d9dd7a",
+        "name": "Care Timer",
+        "func": "var data = msg.payload;\nvar rfid = data.RFID;\nvar now = Date.now();\n\n// Get stored values from previous loops\n// lastCareTime starts as null (no check-in has happened yet)\nvar lastCareTime = flow.get(\"lastCareTime\") || null;\nvar lastNurseID = flow.get(\"lastNurseID\") || \"NONE\";\n\n// Check if a nurse just tapped their RFID tag\nif (rfid !== \"NONE\") {\n    // Record when this check-in happened\n    lastCareTime = now;\n    // Record which nurse tapped in\n    lastNurseID = rfid;\n    // Save both to flow context so they persist between loops\n    flow.set(\"lastCareTime\", lastCareTime);\n    flow.set(\"lastNurseID\", lastNurseID);\n    // Clear any active alert since a nurse is now attending\n    flow.set(\"alertLevel\", \"NONE\");\n}\n\n// Calculate how long since the last check-in\n// If no check-in has ever happened, set to -1 so we can handle it differently\nvar minutesSinceCare;\nvar careOverdue;\n\nif (lastCareTime === null) {\n    // No nurse has ever checked in since the system started\n    minutesSinceCare = -1;\n    careOverdue = true;\n} else {\n    // Calculate minutes since the last tap\n    minutesSinceCare = Math.floor((now - lastCareTime) / 60000);\n    // 180 minutes = 3 hours, based on WHO/NHS feeding guidelines\n    careOverdue = minutesSinceCare >= 180;\n}\n\n// Save to flow context so Alert Escalation can read it\nflow.set(\"minutesSinceCare\", minutesSinceCare);\n\nmsg.payload = {\n    // When the last check-in happened (null if never)\n    lastCareTime: lastCareTime ? new Date(lastCareTime).toISOString() : \"never\",\n    // Which nurse last tapped in\n    lastNurseID: lastNurseID,\n    // How many minutes ago (-1 if never)\n    minutesSinceCare: minutesSinceCare,\n    // Whether the 3-hour window has passed\n    careOverdue: careOverdue,\n    // Whether this particular message included an RFID tap\n    rfidJustTapped: (rfid !== \"NONE\"),\n    timestamp: new Date().toISOString()\n};\n\nmsg.topic = \"infant/care\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 180,
+        "wires": [
+            [
+                "9206277d548b0801"
+            ]
+        ]
+    },
+    {
+        "id": "9206277d548b0801",
+        "type": "mqtt out",
+        "z": "6236dbe166d9dd7a",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5849c4ed40467e70",
+        "x": 1070,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "fc034282318b29b9",
+        "type": "function",
+        "z": "6236dbe166d9dd7a",
+        "name": "Format Env Data for LCD",
+        "func": "var data = msg.payload;\n\nmsg.payload = {\n    temperature: data.TEMP,\n    humidity: data.HUMIDITY\n};\n\nmsg.topic = \"infant/env\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 260,
+        "wires": [
+            [
+                "4fa2aecdb3aac319"
+            ]
+        ]
+    },
+    {
+        "id": "4fa2aecdb3aac319",
+        "type": "mqtt out",
+        "z": "6236dbe166d9dd7a",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5849c4ed40467e70",
+        "x": 1130,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "1d0ebf6c3c6c2b21",
+        "type": "mqtt in",
+        "z": "dfe489091e32acbc",
+        "name": "Camera Input",
+        "topic": "infant/camera",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "5849c4ed40467e70",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 770,
+        "y": 300,
+        "wires": [
+            [
+                "4f41b7da4b3e0393"
+            ]
+        ]
+    },
+    {
+        "id": "8f3543ed58d24eeb",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Sleeping peacefully",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"infant_present\",\"state\":\"sleeping\",\"crying\":false,\"cameraMotion\":null} ",
+        "payloadType": "json",
+        "x": 190,
+        "y": 160,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "aeddb79505695a39",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Awake and Calm",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"infant_present\",\"state\":\"awake\",\"crying\":false,\"cameraMotion\":null}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 200,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "022ad92b3ce05bd6",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Crying",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"infant_present\",\"state\":\"awake\",\"crying\":true,\"cameraMotion\":null}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 240,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "b10954fb65585ce9",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Absent",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"not_found\",\"state\":\"none\",\"crying\":false,\"cameraMotion\":false}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 320,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "681f02b77b045b61",
+        "type": "mqtt out",
+        "z": "dfe489091e32acbc",
+        "name": "",
+        "topic": "infant/camera",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5849c4ed40467e70",
+        "x": 540,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "6e546729d8fc5730",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Triggered, baby moved",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"infant_present\",\"state\":\"sleeping\",\"crying\":false,\"cameraMotion\":true}",
+        "payloadType": "json",
+        "x": 200,
+        "y": 400,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "ceee680b8fdafd58",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Triggered, baby didn't move, asleep",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"infant_present\",\"state\":\"sleeping\",\"crying\":false,\"cameraMotion\":false}",
+        "payloadType": "json",
+        "x": 240,
+        "y": 480,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "12332e90bc7acdad",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Face Hidden",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"infant_present\",\"state\":\"face_not_visible\",\"crying\":false,\"cameraMotion\":null}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 280,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "4f41b7da4b3e0393",
+        "type": "function",
+        "z": "dfe489091e32acbc",
+        "name": "State Classification",
+        "func": "var camera = msg.payload;\nvar previousState = flow.get(\"infantState\") || \"UNKNOWN\";\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\n\n// Save camera data for other nodes\nflow.set(\"cameraData\", camera);\n\n// Camera is the primary source of truth\nvar state = \"UNKNOWN\";\n\n// Step 1: Is the baby even there?\nif (camera.presence === \"not_found\") {\n    state = \"ABSENT\";\n}\n// Step 2: Is the baby crying? (crying overrides face state)\nelse if (camera.crying === true) {\n    state = \"CRYING\";\n}\n// Step 3: What do the eyes say?\nelse if (camera.state === \"awake\") {\n    state = \"AWAKE\";\n}\nelse if (camera.state === \"sleeping\") {\n    state = \"SLEEPING\";\n}\n// Step 4: Face not visible, best guess\nelse if (camera.state === \"face_not_visible\" || camera.state === \"none\") {\n    if (camera.cameraMotion === true) {\n        state = \"AWAKE\";\n    } else if (camera.cameraMotion === false) {\n        state = \"SLEEPING\";\n    } else {\n        // cameraMotion is null (normal flow, not triggered)\n        // Keep previous state if we had one\n        if (previousState !== \"UNKNOWN\" && previousState !== \"ABSENT\") {\n            state = previousState;\n        } else {\n            state = \"UNKNOWN\";\n        }\n    }\n}\n\n// Save state\nflow.set(\"infantState\", state);\n\nmsg.payload = {\n    state: state,\n    previousState: previousState,\n    stateChanged: (state !== previousState),\n    presence: camera.presence,\n    faceState: camera.state,\n    crying: camera.crying,\n    cameraMotion: camera.cameraMotion,\n    pirNoMotionSeconds: pirNoMotionSeconds,\n    timestamp: new Date().toISOString()\n};\n\nmsg.topic = \"infant/state\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 990,
+        "y": 300,
+        "wires": [
+            [
+                "ed9cae5ed33591b3",
+                "2de0839a97a81e47"
+            ]
+        ]
+    },
+    {
+        "id": "01e21de30bac09d7",
+        "type": "inject",
+        "z": "dfe489091e32acbc",
+        "name": "SIM: Triggered, baby din't move, awake",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"presence\":\"infant_present\",\"state\":\"awake\",\"crying\":false,\"cameraMotion\":false}",
+        "payloadType": "json",
+        "x": 230,
+        "y": 440,
+        "wires": [
+            [
+                "681f02b77b045b61"
+            ]
+        ]
+    },
+    {
+        "id": "ed9cae5ed33591b3",
+        "type": "function",
+        "z": "dfe489091e32acbc",
+        "name": "Alert Escalation",
+        "func": "var state = flow.get(\"infantState\") || \"UNKNOWN\";\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\nvar minutesSinceCare = flow.get(\"minutesSinceCare\") || 0;\nvar camera = flow.get(\"cameraData\") || {};\nvar sensors = flow.get(\"sensorData\") || {};\nvar previousAlert = flow.get(\"alertLevel\") || \"NONE\";\n\n// Thresholds (short for testing, increase for real use)\nvar CARE_MEDIUM_MINUTES = 5;\nvar CARE_HIGH_MINUTES = 10;\nvar CRYING_ESCALATE_MINUTES = 5;\n\nvar alertLevel = \"NONE\";\nvar alertReason = \"\";\nvar buzzerCommand = \"BUZZER:OFF\";\n\n// Priority 1: Baby not in crib\nif (state === \"ABSENT\") {\n    alertLevel = \"HIGH\";\n    alertReason = \"Baby not detected in crib\";\n    buzzerCommand = \"BUZZER:ON\";\n}\n\n// Priority 2: Triggered motion check came back negative\nif (alertLevel === \"NONE\" &&\n    camera.cameraMotion === false &&\n    camera.presence === \"infant_present\") {\n    alertLevel = \"MEDIUM\";\n    alertReason = \"Baby has not moved during motion check\";\n    buzzerCommand = \"BUZZER:ON\";\n}\n\n// Priority 3: Baby crying\nif (alertLevel === \"NONE\" && state === \"CRYING\") {\n    if (minutesSinceCare >= CRYING_ESCALATE_MINUTES) {\n        alertLevel = \"HIGH\";\n        alertReason = \"Baby crying, no nurse check-in for \" + minutesSinceCare + \" minutes\";\n        buzzerCommand = \"BUZZER:ON\";\n    } else {\n        alertLevel = \"LOW\";\n        alertReason = \"Baby is crying\";\n    }\n}\n\n// Priority 4: Care overdue regardless of state\n// -1 means no nurse has ever checked in\nif (alertLevel === \"NONE\" && (minutesSinceCare === -1 || minutesSinceCare >= CARE_HIGH_MINUTES)) {\n    alertLevel = \"LOW\";\n    if (minutesSinceCare === -1) {\n        alertReason = \"No nurse has checked in since system started\";\n    } else {\n        alertReason = \"Routine check-in overdue (\" + minutesSinceCare + \" minutes)\";\n    }\n}\n\n// Build possible causes when crying\nvar possibleCauses = [];\nif (state === \"CRYING\" && sensors) {\n    if (sensors.TEMP > 26) {\n        possibleCauses.push(\"Possibly too warm (\" + sensors.TEMP.toFixed(1) + \"C)\");\n    }\n    if (sensors.TEMP < 18) {\n        possibleCauses.push(\"Possibly too cold (\" + sensors.TEMP.toFixed(1) + \"C)\");\n    }\n    if (minutesSinceCare === -1 || minutesSinceCare >= 120) {\n        possibleCauses.push(\"Possibly hungry (no recent care event logged)\");\n    }\n\n    // Check for sudden noise spike\n    var recentLoudness = flow.get(\"recentLoudness\") || [];\n    recentLoudness.push(sensors.LOUDNESS || 0);\n    if (recentLoudness.length > 30) recentLoudness.shift();\n    flow.set(\"recentLoudness\", recentLoudness);\n\n    if (recentLoudness.length >= 15) {\n        var olderAvg = 0;\n        for (var i = 0; i < 10; i++) olderAvg += recentLoudness[i];\n        olderAvg = olderAvg / 10;\n        var newerMax = 0;\n        for (var j = recentLoudness.length - 5; j < recentLoudness.length; j++) {\n            if (recentLoudness[j] > newerMax) newerMax = recentLoudness[j];\n        }\n        if (newerMax > olderAvg * 2) {\n            possibleCauses.push(\"Possibly startled by sudden noise\");\n        }\n    }\n}\n\nflow.set(\"alertLevel\", alertLevel);\n\n// Output 1: alert data\nvar alertMsg = {\n    payload: {\n        alertLevel: alertLevel,\n        alertReason: alertReason,\n        possibleCauses: possibleCauses,\n        alertChanged: (alertLevel !== previousAlert),\n        infantState: state,\n        pirNoMotionSeconds: pirNoMotionSeconds,\n        minutesSinceCare: minutesSinceCare,\n        cameraMotion: camera.cameraMotion,\n        timestamp: new Date().toISOString()\n    },\n    topic: \"infant/alerts\"\n};\n\n// Output 2: buzzer command for Arduino (Phase 3)\nvar buzzerMsg = { payload: buzzerCommand };\n\n// Only send alert output if there is an active alert or alert just cleared\nif (alertLevel !== \"NONE\" || previousAlert !== \"NONE\") {\n    return [alertMsg, buzzerMsg];\n}\nreturn [null, buzzerMsg];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1220,
+        "y": 300,
+        "wires": [
+            [
+                "f174e4f438c5f57d",
+                "8c3b56b18d26ef1c"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "f174e4f438c5f57d",
+        "type": "debug",
+        "z": "dfe489091e32acbc",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1440,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "8c3b56b18d26ef1c",
+        "type": "mqtt out",
+        "z": "dfe489091e32acbc",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5849c4ed40467e70",
+        "x": 1430,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "2de0839a97a81e47",
+        "type": "function",
+        "z": "dfe489091e32acbc",
+        "name": "Format for Cloud",
+        "func": "var state = flow.get(\"infantState\") || \"UNKNOWN\";\nvar alertLevel = flow.get(\"alertLevel\") || \"NONE\";\nvar minutesSinceCare = flow.get(\"minutesSinceCare\") || 0;\nvar lastNurseID = flow.get(\"lastNurseID\") || \"NONE\";\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\nvar sensors = flow.get(\"sensorData\") || {};\nvar camera = flow.get(\"cameraData\") || {};\n\nmsg.payload = {\n    infantState: state,\n    alertLevel: alertLevel,\n    minutesSinceCare: minutesSinceCare,\n    lastNurseID: lastNurseID,\n    pirNoMotionSeconds: pirNoMotionSeconds,\n    temperature: sensors.TEMP,\n    humidity: sensors.HUMIDITY,\n    light: sensors.LIGHT,\n    loudness: sensors.LOUDNESS,\n    motion: sensors.MOTION,\n    cameraPresence: camera.presence,\n    cameraFaceState: camera.state,\n    cameraCrying: camera.crying,\n    cameraMotion: camera.cameraMotion,\n    timestamp: new Date().toISOString()\n};\n\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1230,
+        "y": 360,
+        "wires": [
+            [
+                "1a7710a3b43b3bc1"
+            ]
+        ]
+    },
+    {
+        "id": "1a7710a3b43b3bc1",
+        "type": "http request",
+        "z": "dfe489091e32acbc",
+        "name": "",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1450,
+        "y": 360,
+        "wires": [
+            []
+        ]
     }
 ]
