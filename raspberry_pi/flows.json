@@ -131,7 +131,8 @@
                 "489e116733c660c7",
                 "2e3b4d370f356ac2",
                 "6f8df106b6edcec4",
-                "fc034282318b29b9"
+                "fc034282318b29b9",
+                "2721bd0a996f0b43"
             ]
         ]
     },
@@ -150,7 +151,7 @@
         "expiry": "",
         "broker": "5849c4ed40467e70",
         "x": 560,
-        "y": 320,
+        "y": 360,
         "wires": []
     },
     {
@@ -170,7 +171,7 @@
         "senderr": false,
         "headers": [],
         "x": 810,
-        "y": 400,
+        "y": 440,
         "wires": [
             []
         ]
@@ -188,7 +189,7 @@
         "finalize": "",
         "libs": [],
         "x": 590,
-        "y": 400,
+        "y": 440,
         "wires": [
             [
                 "7c57663027be9c5d"
@@ -200,7 +201,7 @@
         "type": "function",
         "z": "6236dbe166d9dd7a",
         "name": "Camera Input Builder",
-        "func": "var data = msg.payload;\nvar now = Date.now();\n\n// Track how long PIR has detected no motion\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\n\nif (data.MOTION === 0) {\n    pirNoMotionSeconds += 2;  // loop runs every 2 seconds\n} else {\n    pirNoMotionSeconds = 0;\n}\nflow.set(\"pirNoMotionSeconds\", pirNoMotionSeconds);\n\n// Decide whether to trigger CNN\n// Only trigger once when we cross the threshold, not every cycle after\nvar CNN_TRIGGER_SECONDS = 15;  // adjust after testing\nvar lastCNNTriggerTime = flow.get(\"lastCNNTriggerTime\") || 0;\nvar triggerCNN = false;\n\nif (pirNoMotionSeconds >= CNN_TRIGGER_SECONDS) {\n    // Only trigger every CNN_TRIGGER_SECONDS, not every 2 seconds\n    if (now - lastCNNTriggerTime >= CNN_TRIGGER_SECONDS * 1000) {\n        triggerCNN = true;\n        flow.set(\"lastCNNTriggerTime\", now);\n    }\n}\n\nmsg.payload = {\n    loudness: data.LOUDNESS,\n    triggerCNN: triggerCNN\n};\n\nmsg.topic = \"infant/camera/input\";\n\nreturn msg;",
+        "func": "var data = msg.payload;\nvar now = Date.now();\n\n// Track how long PIR has detected no motion\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\n\nif (data.MOTION === 0) {\n    pirNoMotionSeconds += 2;\n} else {\n    pirNoMotionSeconds = 0;\n}\nflow.set(\"pirNoMotionSeconds\", pirNoMotionSeconds);\n\n// Decide whether to trigger CNN\nvar CNN_TRIGGER_SECONDS = 15;  // short for testing, increase for real use\nvar lastCNNTriggerTime = flow.get(\"lastCNNTriggerTime\") || 0;\nvar triggerCNN = false;\n\n// Only trigger if PIR has been still long enough\n// AND enough time has passed since last trigger\nif (pirNoMotionSeconds >= CNN_TRIGGER_SECONDS) {\n    if (now - lastCNNTriggerTime >= CNN_TRIGGER_SECONDS * 1000) {\n        triggerCNN = true;\n        flow.set(\"lastCNNTriggerTime\", now);\n    }\n}\n\nmsg.payload = {\n    loudness: data.LOUDNESS,\n    triggerCNN: triggerCNN\n};\n\nmsg.topic = \"infant/camera/input\";\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -238,7 +239,7 @@
         "type": "function",
         "z": "6236dbe166d9dd7a",
         "name": "Care Timer",
-        "func": "var data = msg.payload;\nvar rfid = data.RFID;\nvar now = Date.now();\n\n// Get stored values from previous loops\n// lastCareTime starts as null (no check-in has happened yet)\nvar lastCareTime = flow.get(\"lastCareTime\") || null;\nvar lastNurseID = flow.get(\"lastNurseID\") || \"NONE\";\n\n// Check if a nurse just tapped their RFID tag\nif (rfid !== \"NONE\") {\n    // Record when this check-in happened\n    lastCareTime = now;\n    // Record which nurse tapped in\n    lastNurseID = rfid;\n    // Save both to flow context so they persist between loops\n    flow.set(\"lastCareTime\", lastCareTime);\n    flow.set(\"lastNurseID\", lastNurseID);\n    // Clear any active alert since a nurse is now attending\n    flow.set(\"alertLevel\", \"NONE\");\n}\n\n// Calculate how long since the last check-in\n// If no check-in has ever happened, set to -1 so we can handle it differently\nvar minutesSinceCare;\nvar careOverdue;\n\nif (lastCareTime === null) {\n    // No nurse has ever checked in since the system started\n    minutesSinceCare = -1;\n    careOverdue = true;\n} else {\n    // Calculate minutes since the last tap\n    minutesSinceCare = Math.floor((now - lastCareTime) / 60000);\n    // 180 minutes = 3 hours, based on WHO/NHS feeding guidelines\n    careOverdue = minutesSinceCare >= 180;\n}\n\n// Save to flow context so Alert Escalation can read it\nflow.set(\"minutesSinceCare\", minutesSinceCare);\n\nmsg.payload = {\n    // When the last check-in happened (null if never)\n    lastCareTime: lastCareTime ? new Date(lastCareTime).toISOString() : \"never\",\n    // Which nurse last tapped in\n    lastNurseID: lastNurseID,\n    // How many minutes ago (-1 if never)\n    minutesSinceCare: minutesSinceCare,\n    // Whether the 3-hour window has passed\n    careOverdue: careOverdue,\n    // Whether this particular message included an RFID tap\n    rfidJustTapped: (rfid !== \"NONE\"),\n    timestamp: new Date().toISOString()\n};\n\nmsg.topic = \"infant/care\";\n\nreturn msg;",
+        "func": "var data = msg.payload;\nvar rfid = data.RFID;\nvar now = Date.now();\n\nvar lastCareTime = flow.get(\"lastCareTime\") || null;\nvar lastNurseID = flow.get(\"lastNurseID\") || \"NONE\";\n\nif (rfid !== \"NONE\") {\n    lastCareTime = now;\n    lastNurseID = rfid;\n    flow.set(\"lastCareTime\", lastCareTime);\n    flow.set(\"lastNurseID\", lastNurseID);\n\n    // Nurse is attending, so crying escalation restarts from LOW\n    // We don't clear the alert directly - Alert Escalation handles that\n    flow.set(\"cryingStartTime\", null);\n    flow.set(\"cryingGraceStart\", null);\n}\n\nvar minutesSinceCare;\nvar careOverdue;\n\nif (lastCareTime === null) {\n    minutesSinceCare = -1;\n    careOverdue = true;\n} else {\n    minutesSinceCare = Math.floor((now - lastCareTime) / 60000);\n    careOverdue = minutesSinceCare >= 180;\n}\n\nflow.set(\"minutesSinceCare\", minutesSinceCare);\n\nmsg.payload = {\n    lastCareTime: lastCareTime ? new Date(lastCareTime).toISOString() : \"never\",\n    lastNurseID: lastNurseID,\n    minutesSinceCare: minutesSinceCare,\n    careOverdue: careOverdue,\n    rfidJustTapped: (rfid !== \"NONE\"),\n    timestamp: new Date().toISOString()\n};\n\nmsg.topic = \"infant/care\";\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -246,10 +247,11 @@
         "finalize": "",
         "libs": [],
         "x": 550,
-        "y": 160,
+        "y": 180,
         "wires": [
             [
-                "9206277d548b0801"
+                "9206277d548b0801",
+                "1f09040e2e5ee066"
             ]
         ]
     },
@@ -268,7 +270,7 @@
         "expiry": "",
         "broker": "5849c4ed40467e70",
         "x": 750,
-        "y": 160,
+        "y": 180,
         "wires": []
     },
     {
@@ -284,7 +286,7 @@
         "finalize": "",
         "libs": [],
         "x": 590,
-        "y": 240,
+        "y": 280,
         "wires": [
             [
                 "4fa2aecdb3aac319"
@@ -306,7 +308,7 @@
         "expiry": "",
         "broker": "5849c4ed40467e70",
         "x": 810,
-        "y": 240,
+        "y": 280,
         "wires": []
     },
     {
@@ -351,8 +353,8 @@
         "topic": "",
         "payload": "{\"presence\":\"infant_present\",\"state\":\"sleeping\",\"crying\":false,\"cameraMotion\":null} ",
         "payloadType": "json",
-        "x": 1050,
-        "y": 220,
+        "x": 1110,
+        "y": 400,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -380,8 +382,8 @@
         "topic": "",
         "payload": "{\"presence\":\"infant_present\",\"state\":\"awake\",\"crying\":false,\"cameraMotion\":null}",
         "payloadType": "json",
-        "x": 1040,
-        "y": 260,
+        "x": 1100,
+        "y": 440,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -409,8 +411,8 @@
         "topic": "",
         "payload": "{\"presence\":\"infant_present\",\"state\":\"awake\",\"crying\":true,\"cameraMotion\":null}",
         "payloadType": "json",
-        "x": 1010,
-        "y": 300,
+        "x": 1070,
+        "y": 480,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -438,8 +440,8 @@
         "topic": "",
         "payload": "{\"presence\":\"not_found\",\"state\":\"none\",\"crying\":false,\"cameraMotion\":false}",
         "payloadType": "json",
-        "x": 1010,
-        "y": 380,
+        "x": 1070,
+        "y": 560,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -460,8 +462,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1400,
-        "y": 360,
+        "x": 1380,
+        "y": 540,
         "wires": []
     },
     {
@@ -485,8 +487,8 @@
         "topic": "",
         "payload": "{\"presence\":\"infant_present\",\"state\":\"sleeping\",\"crying\":false,\"cameraMotion\":true}",
         "payloadType": "json",
-        "x": 1060,
-        "y": 460,
+        "x": 1120,
+        "y": 640,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -514,8 +516,8 @@
         "topic": "",
         "payload": "{\"presence\":\"infant_present\",\"state\":\"sleeping\",\"crying\":false,\"cameraMotion\":false}",
         "payloadType": "json",
-        "x": 1100,
-        "y": 540,
+        "x": 1160,
+        "y": 720,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -543,8 +545,8 @@
         "topic": "",
         "payload": "{\"presence\":\"infant_present\",\"state\":\"face_not_visible\",\"crying\":false,\"cameraMotion\":null}",
         "payloadType": "json",
-        "x": 1030,
-        "y": 340,
+        "x": 1090,
+        "y": 520,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -556,20 +558,21 @@
         "type": "function",
         "z": "6236dbe166d9dd7a",
         "name": "State Classification",
-        "func": "var camera = msg.payload;\nvar previousState = flow.get(\"infantState\") || \"UNKNOWN\";\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\n\n// Save camera data for other nodes\nflow.set(\"cameraData\", camera);\n\n// Camera is the primary source of truth\nvar state = \"UNKNOWN\";\n\n// Step 1: Is the baby even there?\nif (camera.presence === \"not_found\") {\n    state = \"ABSENT\";\n}\n// Step 2: Is the baby crying? (crying overrides face state)\nelse if (camera.crying === true) {\n    state = \"CRYING\";\n}\n// Step 3: What do the eyes say?\nelse if (camera.state === \"awake\") {\n    state = \"AWAKE\";\n}\nelse if (camera.state === \"sleeping\") {\n    state = \"SLEEPING\";\n}\n// Step 4: Face not visible, best guess\nelse if (camera.state === \"face_not_visible\" || camera.state === \"none\") {\n    if (camera.cameraMotion === true) {\n        state = \"AWAKE\";\n    } else if (camera.cameraMotion === false) {\n        state = \"SLEEPING\";\n    } else {\n        // cameraMotion is null (normal flow, not triggered)\n        // Keep previous state if we had one\n        if (previousState !== \"UNKNOWN\" && previousState !== \"ABSENT\") {\n            state = previousState;\n        } else {\n            state = \"UNKNOWN\";\n        }\n    }\n}\n\n// Save state\nflow.set(\"infantState\", state);\n\nmsg.payload = {\n    state: state,\n    previousState: previousState,\n    stateChanged: (state !== previousState),\n    presence: camera.presence,\n    faceState: camera.state,\n    crying: camera.crying,\n    cameraMotion: camera.cameraMotion,\n    pirNoMotionSeconds: pirNoMotionSeconds,\n    timestamp: new Date().toISOString()\n};\n\nmsg.topic = \"infant/state\";\n\nreturn msg;",
+        "func": "// Triggered by either camera data (on change) or sensor data (every 2 seconds)\n// When triggered by sensor data, re-evaluates using the last known camera state\nvar camera;\nif (msg.topic === \"infant/camera\") {\n    camera = msg.payload;\n    flow.set(\"cameraData\", camera);\n} else {\n    camera = flow.get(\"cameraData\") || null;\n    if (!camera) {\n        return null;  // No camera data yet, nothing to evaluate\n    }\n}\n\nvar previousState = flow.get(\"infantState\") || \"UNKNOWN\";\nvar now = Date.now();\nvar lastFaceSeenTime = flow.get(\"lastFaceSeenTime\") || 0;\n\n// How long to keep previous state when HOG loses the face\n// Prevents false ABSENT from baby turning head briefly\nvar GRACE_PERIOD_MS = 15000;  // 15 seconds \n\nvar state = \"UNKNOWN\";\n\n// HOG currently sees a face - this is the most reliable signal\nvar hogSeesFace = (camera.state === \"sleeping\" || camera.state === \"awake\");\nvar isCrying = (camera.crying === true);\n\nif (hogSeesFace || isCrying) {\n    // We can see a face, so we know exactly what's happening\n    flow.set(\"lastFaceSeenTime\", now);\n\n    if (isCrying) {\n        state = \"CRYING\";\n    } else if (camera.state === \"awake\") {\n        state = \"AWAKE\";\n    } else {\n        state = \"SLEEPING\";\n    }\n}\nelse {\n    // HOG cannot see a face right now\n    var timeSinceLastFace = now - lastFaceSeenTime;\n\n    if (lastFaceSeenTime === 0) {\n        // System just started, HOG has never seen a face\n        if (camera.presence === \"not_found\") {\n            state = \"ABSENT\";\n        } else {\n            state = \"UNKNOWN\";\n        }\n    }\n    else if (timeSinceLastFace < GRACE_PERIOD_MS) {\n        // Within grace period - baby probably just turned their head\n        if (previousState !== \"UNKNOWN\" && previousState !== \"ABSENT\") {\n            state = previousState;\n        } else {\n            state = \"UNKNOWN\";\n        }\n    }\n    else {\n        // Grace period expired - now trust CNN result\n        if (camera.presence === \"not_found\") {\n            state = \"ABSENT\";\n        } else {\n            // CNN sees someone but HOG can't find a face\n            // Baby might be face-down or turned away\n            if (camera.cameraMotion === true) {\n                state = \"AWAKE\";\n            } else if (camera.cameraMotion === false) {\n                state = \"SLEEPING\";\n            } else {\n                if (previousState !== \"UNKNOWN\" && previousState !== \"ABSENT\") {\n                    state = previousState;\n                } else {\n                    state = \"SLEEPING\";\n                }\n            }\n        }\n    }\n}\n\nflow.set(\"infantState\", state);\n\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\n\nmsg.payload = {\n    state: state,\n    previousState: previousState,\n    stateChanged: (state !== previousState),\n    presence: camera.presence,\n    faceState: camera.state,\n    crying: camera.crying,\n    cameraMotion: camera.cameraMotion,\n    pirNoMotionSeconds: pirNoMotionSeconds,\n    timestamp: new Date().toISOString()\n};\n\nmsg.topic = \"infant/state\";\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1170,
-        "y": 80,
+        "x": 1050,
+        "y": 220,
         "wires": [
             [
                 "51741a06454f9f01",
                 "1e0979c3ce17669f",
-                "413fc42bb699751f"
+                "355ecf54b6fd998a",
+                "6e6d88cf3b88f012"
             ]
         ]
     },
@@ -594,8 +597,8 @@
         "topic": "",
         "payload": "{\"presence\":\"infant_present\",\"state\":\"awake\",\"crying\":false,\"cameraMotion\":false}",
         "payloadType": "json",
-        "x": 1090,
-        "y": 500,
+        "x": 1150,
+        "y": 680,
         "wires": [
             [
                 "3f7ca34e311d2620"
@@ -607,38 +610,24 @@
         "type": "function",
         "z": "6236dbe166d9dd7a",
         "name": "Alert Escalation",
-        "func": "var state = flow.get(\"infantState\") || \"UNKNOWN\";\nvar pirNoMotionSeconds = flow.get(\"pirNoMotionSeconds\") || 0;\nvar minutesSinceCare = flow.get(\"minutesSinceCare\") || 0;\nvar camera = flow.get(\"cameraData\") || {};\nvar sensors = flow.get(\"sensorData\") || {};\nvar previousAlert = flow.get(\"alertLevel\") || \"NONE\";\n\n// Thresholds (short for testing, increase for real use)\nvar CARE_MEDIUM_MINUTES = 5;\nvar CARE_HIGH_MINUTES = 10;\nvar CRYING_ESCALATE_MINUTES = 5;\n\nvar alertLevel = \"NONE\";\nvar alertReason = \"\";\nvar buzzerCommand = \"BUZZER:OFF\";\n\n// Priority 1: Baby not in crib\nif (state === \"ABSENT\") {\n    alertLevel = \"HIGH\";\n    alertReason = \"Baby not detected in crib\";\n    buzzerCommand = \"BUZZER:ON\";\n}\n\n// Priority 2: Triggered motion check came back negative\nif (alertLevel === \"NONE\" &&\n    camera.cameraMotion === false &&\n    camera.presence === \"infant_present\") {\n    alertLevel = \"MEDIUM\";\n    alertReason = \"Baby has not moved during motion check\";\n    buzzerCommand = \"BUZZER:ON\";\n}\n\n// Priority 3: Baby crying\nif (alertLevel === \"NONE\" && state === \"CRYING\") {\n    if (minutesSinceCare >= CRYING_ESCALATE_MINUTES) {\n        alertLevel = \"HIGH\";\n        alertReason = \"Baby crying, no nurse check-in for \" + minutesSinceCare + \" minutes\";\n        buzzerCommand = \"BUZZER:ON\";\n    } else {\n        alertLevel = \"LOW\";\n        alertReason = \"Baby is crying\";\n    }\n}\n\n// Priority 4: Care overdue regardless of state\n// -1 means no nurse has ever checked in\nif (alertLevel === \"NONE\" && (minutesSinceCare === -1 || minutesSinceCare >= CARE_HIGH_MINUTES)) {\n    alertLevel = \"LOW\";\n    if (minutesSinceCare === -1) {\n        alertReason = \"No nurse has checked in since system started\";\n    } else {\n        alertReason = \"Routine check-in overdue (\" + minutesSinceCare + \" minutes)\";\n    }\n}\n\n// Build possible causes when crying\nvar possibleCauses = [];\nif (state === \"CRYING\" && sensors) {\n    if (sensors.TEMP > 26) {\n        possibleCauses.push(\"Possibly too warm (\" + sensors.TEMP.toFixed(1) + \"C)\");\n    }\n    if (sensors.TEMP < 18) {\n        possibleCauses.push(\"Possibly too cold (\" + sensors.TEMP.toFixed(1) + \"C)\");\n    }\n    if (minutesSinceCare === -1 || minutesSinceCare >= 120) {\n        possibleCauses.push(\"Possibly hungry (no recent care event logged)\");\n    }\n\n    // Check for sudden noise spike\n    var recentLoudness = flow.get(\"recentLoudness\") || [];\n    recentLoudness.push(sensors.LOUDNESS || 0);\n    if (recentLoudness.length > 30) recentLoudness.shift();\n    flow.set(\"recentLoudness\", recentLoudness);\n\n    if (recentLoudness.length >= 15) {\n        var olderAvg = 0;\n        for (var i = 0; i < 10; i++) olderAvg += recentLoudness[i];\n        olderAvg = olderAvg / 10;\n        var newerMax = 0;\n        for (var j = recentLoudness.length - 5; j < recentLoudness.length; j++) {\n            if (recentLoudness[j] > newerMax) newerMax = recentLoudness[j];\n        }\n        if (newerMax > olderAvg * 2) {\n            possibleCauses.push(\"Possibly startled by sudden noise\");\n        }\n    }\n}\n\nflow.set(\"alertLevel\", alertLevel);\n\n// Output 1: alert data\nvar alertMsg = {\n    payload: {\n        alertLevel: alertLevel,\n        alertReason: alertReason,\n        possibleCauses: possibleCauses,\n        alertChanged: (alertLevel !== previousAlert),\n        infantState: state,\n        pirNoMotionSeconds: pirNoMotionSeconds,\n        minutesSinceCare: minutesSinceCare,\n        cameraMotion: camera.cameraMotion,\n        timestamp: new Date().toISOString()\n    },\n    topic: \"infant/alerts\"\n};\n\n// Output 2: buzzer command for Arduino (Phase 3)\nvar buzzerMsg = { payload: buzzerCommand };\n\n// Only send alert output if there is an active alert or alert just cleared\nif (alertLevel !== \"NONE\" || previousAlert !== \"NONE\") {\n    return [alertMsg, buzzerMsg];\n}\nreturn [null, buzzerMsg];",
+        "func": "var state = flow.get(\"infantState\") || \"UNKNOWN\";\nvar minutesSinceCare = flow.get(\"minutesSinceCare\") || 0;\nvar camera = flow.get(\"cameraData\") || {};\nvar sensors = flow.get(\"sensorData\") || {};\nvar previousAlert = flow.get(\"alertLevel\") || \"NONE\";\nvar now = Date.now();\n\n// Thresholds (short for testing, increase for real use)\nvar CRYING_ESCALATE_MINUTES = 5;\nvar CARE_OVERDUE_MINUTES = 10;\nvar MOTION_ALERT_DURATION_MS = 60000;  // Show motion alert for 60 seconds\nvar CRYING_GRACE_MS = 10000;           // 10 second grace before resetting crying timer\n\n// --- Crying duration tracking with grace period ---\n// If crying stops briefly (less than 10 seconds), don't reset the timer\n// This handles fidgety crying babies who pause momentarily\nvar cryingStartTime = flow.get(\"cryingStartTime\") || null;\nvar cryingGraceStart = flow.get(\"cryingGraceStart\") || null;\nvar cryingDurationMins = 0;\n\nif (state === \"CRYING\") {\n    // Baby is crying right now\n    cryingGraceStart = null;\n    flow.set(\"cryingGraceStart\", null);\n\n    if (cryingStartTime === null) {\n        // Just started crying\n        flow.set(\"cryingStartTime\", now);\n        cryingDurationMins = 0;\n    } else {\n        cryingDurationMins = Math.floor((now - cryingStartTime) / 60000);\n    }\n} else {\n    // Baby is not crying right now\n    if (cryingStartTime !== null) {\n        // Was crying before, start grace period\n        if (cryingGraceStart === null) {\n            flow.set(\"cryingGraceStart\", now);\n        } else if (now - cryingGraceStart >= CRYING_GRACE_MS) {\n            // Grace period expired, baby genuinely stopped crying\n            flow.set(\"cryingStartTime\", null);\n            flow.set(\"cryingGraceStart\", null);\n            cryingStartTime = null;\n        }\n        // During grace period, keep the crying duration for reference\n        if (cryingStartTime !== null) {\n            cryingDurationMins = Math.floor((now - cryingStartTime) / 60000);\n        }\n    }\n}\n\n// --- Motion alert tracking ---\n// When a triggered motion check returns false, store the time\n// Keep the alert visible for MOTION_ALERT_DURATION_MS so nurses can see it\nvar motionAlertTime = flow.get(\"motionAlertTime\") || null;\nvar previousCameraMotion = flow.get(\"previousCameraMotion\");\n\nif (camera.cameraMotion === false && previousCameraMotion !== false) {\n    // Fresh negative motion result just came in\n    flow.set(\"motionAlertTime\", now);\n    motionAlertTime = now;\n}\nflow.set(\"previousCameraMotion\", camera.cameraMotion);\n\nvar motionAlertActive = (motionAlertTime !== null && (now - motionAlertTime) < MOTION_ALERT_DURATION_MS);\n\n// --- Determine alert level ---\nvar alertLevel = \"NONE\";\nvar alertReason = \"\";\nvar buzzerCommand = \"BUZZER:OFF\";\nvar ledCommand = \"LED:NONE\";\n\n// Priority 1: Baby not in crib\nif (state === \"ABSENT\") {\n    alertLevel = \"HIGH\";\n    alertReason = \"Baby not detected in crib\";\n    buzzerCommand = \"BUZZER:ON\";\n    ledCommand = \"LED:HIGH\";\n}\n\n// Priority 2: Baby crying\nif (alertLevel === \"NONE\" && state === \"CRYING\") {\n    if (cryingDurationMins >= CRYING_ESCALATE_MINUTES) {\n        alertLevel = \"HIGH\";\n        alertReason = \"Baby has been crying for \" + cryingDurationMins + \" minutes\";\n        buzzerCommand = \"BUZZER:ON\";\n        ledCommand = \"LED:HIGH\";\n    } else if (minutesSinceCare !== -1 && minutesSinceCare >= CRYING_ESCALATE_MINUTES) {\n        alertLevel = \"HIGH\";\n        alertReason = \"Baby crying, no nurse check-in for \" + minutesSinceCare + \" minutes\";\n        buzzerCommand = \"BUZZER:ON\";\n        ledCommand = \"LED:HIGH\";\n    } else {\n        alertLevel = \"LOW\";\n        alertReason = \"Baby is crying (\" + cryingDurationMins + \" mins)\";\n        ledCommand = \"LED:LOW\";\n    }\n}\n\n// Priority 3: Motion check was negative (stays visible for 60 seconds)\nif (alertLevel === \"NONE\" && motionAlertActive && camera.presence === \"infant_present\") {\n    alertLevel = \"LOW\";\n    alertReason = \"Baby has not moved during motion check\";\n    ledCommand = \"LED:LOW\";\n}\n\n// Priority 4: Care overdue\nif (alertLevel === \"NONE\") {\n    if (minutesSinceCare === -1) {\n        alertLevel = \"LOW\";\n        alertReason = \"No nurse has checked in since system started\";\n        ledCommand = \"LED:LOW\";\n    } else if (minutesSinceCare >= CARE_OVERDUE_MINUTES) {\n        alertLevel = \"LOW\";\n        alertReason = \"Routine check-in overdue (\" + minutesSinceCare + \" minutes)\";\n        ledCommand = \"LED:LOW\";\n    }\n}\n\n// --- Possible causes when crying ---\nvar possibleCauses = [];\nif (state === \"CRYING\") {\n    if (sensors && sensors.TEMP !== undefined) {\n        if (sensors.TEMP > 26) {\n            possibleCauses.push(\"Possibly too warm (\" + sensors.TEMP.toFixed(1) + \"C)\");\n        }\n        if (sensors.TEMP < 18) {\n            possibleCauses.push(\"Possibly too cold (\" + sensors.TEMP.toFixed(1) + \"C)\");\n        }\n    }\n\n    if (minutesSinceCare === -1 || minutesSinceCare >= 120) {\n        possibleCauses.push(\"Possibly hungry (no recent care event logged)\");\n    }\n\n    var recentLoudness = flow.get(\"recentLoudness\") || [];\n    var currentLoudness = (sensors && sensors.LOUDNESS) ? sensors.LOUDNESS : 0;\n    recentLoudness.push(currentLoudness);\n    if (recentLoudness.length > 30) recentLoudness.shift();\n    flow.set(\"recentLoudness\", recentLoudness);\n\n    if (recentLoudness.length >= 15) {\n        var olderAvg = 0;\n        for (var i = 0; i < 10; i++) olderAvg += recentLoudness[i];\n        olderAvg = olderAvg / 10;\n        var newerMax = 0;\n        for (var j = recentLoudness.length - 5; j < recentLoudness.length; j++) {\n            if (recentLoudness[j] > newerMax) newerMax = recentLoudness[j];\n        }\n        if (newerMax > olderAvg * 2) {\n            possibleCauses.push(\"Possibly startled by sudden noise\");\n        }\n    }\n}\n\nflow.set(\"alertLevel\", alertLevel);\n\n// --- Build outputs ---\nvar alertChanged = (alertLevel !== previousAlert);\n\n// Output 1: alert data to MQTT (only when something changed)\nvar alertMsg = null;\nif (alertLevel !== \"NONE\" || previousAlert !== \"NONE\") {\n    alertMsg = {\n        payload: {\n            alertLevel: alertLevel,\n            alertReason: alertReason,\n            possibleCauses: possibleCauses,\n            alertChanged: alertChanged,\n            infantState: state,\n            cryingDurationMins: cryingDurationMins,\n            minutesSinceCare: minutesSinceCare,\n            cameraMotion: camera.cameraMotion,\n            timestamp: new Date().toISOString()\n        },\n        topic: \"infant/alerts\"\n    };\n}\n\n// Output 2: actuator commands (only when alert level changes)\n// Prevents flooding Arduino with repeated BUZZER:OFF every 2 seconds\nvar actuatorMsg = null;\nif (alertChanged) {\n    actuatorMsg = {payload: buzzerCommand + \"\\n\" + ledCommand + \"\\n\"};\n}\n\nreturn [alertMsg, actuatorMsg];",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1380,
-        "y": 80,
+        "x": 1300,
+        "y": 160,
         "wires": [
             [
-                "18c545aa738146f4",
-                "ab8260549dce56fd"
+                "ab8260549dce56fd",
+                "8fa23aede1f2114a"
             ],
-            []
+            [
+                "67c1003625940770"
+            ]
         ]
-    },
-    {
-        "id": "18c545aa738146f4",
-        "type": "debug",
-        "z": "6236dbe166d9dd7a",
-        "name": "debug 3",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1580,
-        "y": 40,
-        "wires": []
     },
     {
         "id": "ab8260549dce56fd",
@@ -654,8 +643,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5849c4ed40467e70",
-        "x": 1570,
-        "y": 80,
+        "x": 1490,
+        "y": 160,
         "wires": []
     },
     {
@@ -670,10 +659,12 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1390,
-        "y": 140,
+        "x": 1310,
+        "y": 280,
         "wires": [
-            []
+            [
+                "3946cf361280bde5"
+            ]
         ]
     },
     {
@@ -692,14 +683,47 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 1590,
-        "y": 140,
+        "x": 1630,
+        "y": 340,
         "wires": [
             []
         ]
     },
     {
-        "id": "413fc42bb699751f",
+        "id": "67c1003625940770",
+        "type": "serial out",
+        "z": "6236dbe166d9dd7a",
+        "name": "",
+        "serial": "",
+        "x": 1490,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "3946cf361280bde5",
+        "type": "delay",
+        "z": "6236dbe166d9dd7a",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "5",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1520,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1f09040e2e5ee066",
         "type": "debug",
         "z": "6236dbe166d9dd7a",
         "name": "debug 1",
@@ -710,8 +734,59 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1340,
-        "y": 40,
+        "x": 700,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "355ecf54b6fd998a",
+        "type": "debug",
+        "z": "6236dbe166d9dd7a",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1280,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "6e6d88cf3b88f012",
+        "type": "mqtt out",
+        "z": "6236dbe166d9dd7a",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5849c4ed40467e70",
+        "x": 1270,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "8fa23aede1f2114a",
+        "type": "debug",
+        "z": "6236dbe166d9dd7a",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1500,
+        "y": 100,
         "wires": []
     }
 ]
