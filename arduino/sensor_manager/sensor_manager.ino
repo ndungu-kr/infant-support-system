@@ -32,7 +32,7 @@ void setup() {
   setupEnvSensors();    // Feature 2 - f2_env_lcd.ino
   setupLoudness();      // Feature 3 - f3_loudness_led.ino
   setupRFID();          // Feature 4 - f4_rfid_buzzer.ino
-  setupLoudness();
+  setupBuzzer();
 
   Serial.println("STATUS:READY");
 }
@@ -66,8 +66,8 @@ void loop() {
     // --- Send all sensor data to Pi as JSON ---
     JSONVar doc;
     doc["motion"]   = motion;
-    doc["temp"]     = temp;
-    doc["humidity"] = humidity;
+    doc["temp"]     = String(temp, 1); // sending as string then parsing on node red
+    doc["humidity"] = String(humidity, 0); // because json library doesnt handle floats well
     doc["light"]    = light;
     doc["loudness"] = loudness;
     doc["rfid"]     = rfid;
@@ -112,5 +112,11 @@ void parsePiCommand(String cmd){
   if (doc.hasOwnProperty("buzz")){
     int buzz = constrain((int)doc["buzz"], 0, 2);
     triggerBuzzer(buzz);
+  }
+
+  // LED bar alert mode command
+  if (doc.hasOwnProperty("led")) {
+    int led = constrain((int)doc["led"], 0, 3);
+    setLEDAlert(led);
   }
 }

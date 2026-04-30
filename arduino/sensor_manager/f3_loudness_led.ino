@@ -67,13 +67,37 @@ int readLoudness() {
   return sum / 3;
 }
 
+// Alert mode: 0 = show noise, 1 = low, 2 = high
+int currentAlertLevel = 0;
+unsigned long lastAlertFlash = 0;
+bool alertFlashState = false;
+
+void setLEDAlert(int level) {
+  currentAlertLevel = level;
+}
+
 void updateLEDBar(int loudness) {
-  // Clamp loudness to 0-NOISE_HIGH range
-  loudness = constrain(loudness, 0, NOISE_HIGH);
-
-  // Map loudness to 0-10 LED levels
-  // 0 = all off, 10 = all on
-  int level = map(loudness, 0, NOISE_HIGH, 0, 10);
-
-  ledBar.setLevel(level);
+  if (currentAlertLevel == 0) {
+    // No alert, show normal noise level
+    loudness = constrain(loudness, 0, NOISE_HIGH);
+    int level = map(loudness, 0, NOISE_HIGH, 0, 10);
+    ledBar.setLevel(level);
+  }
+  else if (currentAlertLevel == 1) {
+    // LOW alert: steady 10 LEDs
+    ledBar.setLevel(10);
+  }
+  else if (currentAlertLevel == 2) {
+    // HIGH alert: flash all LEDs
+    unsigned long now = millis();
+    if (now - lastAlertFlash >= 500) {
+      lastAlertFlash = now;
+      alertFlashState = !alertFlashState;
+      if (alertFlashState) {
+        ledBar.setLevel(10);
+      } else {
+        ledBar.setLevel(0);
+      }
+    }
+  }
 }
