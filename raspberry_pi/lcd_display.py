@@ -69,7 +69,7 @@ def on_message(client, userdata, msg):
 	humidity = data.get("humidity", "--")
 	
 	setRGB(0, 255, 0) #Green when data received
-	setText(f"Temp:	{temp}C\nHumid:	{humidity}%")
+	setText(f"Temp: {temp}C\nHumid: {humidity}%")
 	
 # Main ------------------------------
 
