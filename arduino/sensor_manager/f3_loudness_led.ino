@@ -10,18 +10,22 @@
 //             for cry detection.
 // ============================================
 
+#include <Grove_LED_Bar.h>
+
 const int LOUDNESS_PIN = A1;       // Analog pin for loudness sensor
 
 // Thresholds for LED bar display 
 const int NOISE_LOW = 100;         // Below this = quiet (green)
 const int NOISE_MED = 250;         // Below this = moderate (amber)
-const int NOISE_HIGH = 400;        // Above this = loud (red)
+const int NOISE_HIGH = 500;        // Above this = loud (red)
+
+Grove_LED_Bar ledBar(9, 8, 1);
 
 void setupLoudness() {
   pinMode(LOUDNESS_PIN, INPUT);
 
-  // TODO: Initialise LED bar
-
+  ledBar.begin();
+  ledBar.setLevel(0); // All LEDs off at startup
 }
 
 int readLoudness() {
@@ -64,10 +68,12 @@ int readLoudness() {
 }
 
 void updateLEDBar(int loudness) {
-  // TODO: Map the loudness value to the number of LEDs lit
+  // Clamp loudness to 0-NOISE_HIGH range
+  loudness = constrain(loudness, 0, NOISE_HIGH);
 
-  // Colour logic:
-  // loudness < NOISE_LOW  -> green LEDs only
-  // loudness < NOISE_MED  -> amber LEDs
-  // loudness >= NOISE_MED -> red LEDs
+  // Map loudness to 0-10 LED levels
+  // 0 = all off, 10 = all on
+  int level = map(loudness, 0, NOISE_HIGH, 0, 10);
+
+  ledBar.setLevel(level);
 }
