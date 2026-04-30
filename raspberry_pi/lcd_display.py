@@ -18,14 +18,13 @@ MQTT_TOPIC = "infant/env"
 
 # FUNCTIONS---------------------
 
-# set backlight to (R,G,B) (values from 0..255 for each)
-def setRGB(r,g,b):
-    bus.write_byte_data(DISPLAY_RGB_ADDR,0,0)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,1,0)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,0x08,0xaa)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,4,r)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,3,g)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,2,b)
+def setRGB(r, g, b):
+    # V5.0 only has on/off backlight, not RGB
+    # Any non-zero value turns it on
+    try:
+        bus.write_byte_data(DISPLAY_TEXT_ADDR, 0x08, 0x08)
+    except:
+        pass
  
 # send command to display (no need for external use)    
 def textCommand(cmd):
@@ -69,7 +68,7 @@ def on_message(client, userdata, msg):
 	humidity = data.get("humidity", "--")
 	
 	setRGB(0, 255, 0) #Green when data received
-	setText(f"Temp: {temp}C\nHumid: {humidity}%")
+	setText(f"Temp: {temp}C\nHumidity: {humidity}%")
 	
 # Main ------------------------------
 
