@@ -46,7 +46,7 @@ MOTION:1,TEMP:24.6,HUMIDITY:58.0,LIGHT:120,LOUDNESS:65,RFID:NONE
 | Light Sensor           | A0   | f2_env_lcd         |
 | Loudness Sensor        | A1   | f3_loudness_led    |
 | LED Bar                | D8   | f3_loudness_led    |
-| Buzzer                 | D8   | f4_rfid_buzzer     |
+| Buzzer                 | D4   | f4_rfid_buzzer     |
 | RFID Reader            | UART | f4_rfid_buzzer     |
 
 
