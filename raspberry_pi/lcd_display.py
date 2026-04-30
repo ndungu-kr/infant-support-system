@@ -18,16 +18,15 @@ MQTT_TOPIC = "infant/env"
 
 # FUNCTIONS---------------------
 
+def initRGB():
+    bus.write_byte_data(0x30, 0x00, 0x07)  # reset the chip
+    time.sleep(0.01)
+    bus.write_byte_data(0x30, 0x04, 0x15)  # set all LEDs always on
+
 def setRGB(r, g, b):
-    try:
-        bus.write_byte_data(0x30, 0x00, 0x07)  # reset the chip
-        time.sleep(0.001)
-        bus.write_byte_data(0x30, 0x04, 0x15)  # set all LEDs always on
-        bus.write_byte_data(0x30, 0x06, r)      # red
-        bus.write_byte_data(0x30, 0x07, g)      # green
-        bus.write_byte_data(0x30, 0x08, b)      # blue
-    except Exception as e:
-        print(f"RGB error: {e}")
+    bus.write_byte_data(0x30, 0x06, r)
+    bus.write_byte_data(0x30, 0x07, g)
+    bus.write_byte_data(0x30, 0x08, b)
  
 # send command to display (no need for external use)    
 def textCommand(cmd):
@@ -76,6 +75,7 @@ def on_message(client, userdata, msg):
 # Main ------------------------------
 
 if __name__ == "__main__":
+    initRGB()
 	setRGB(255,255,0) #Yellow at startup before connecting
 	setText("CONNECTING...\n")
 	
