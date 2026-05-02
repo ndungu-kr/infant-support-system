@@ -11,7 +11,7 @@ from extensions import bcrypt, jwt
 from dotenv import load_dotenv
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__,instance_path="/tmp")
 
 # JWT config---------------------------------------
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")
