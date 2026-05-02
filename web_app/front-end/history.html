@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISS - History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">Infant Support System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="history.html">History</a></li>
+                    <li class="nav-item"><a class="nav-link" href="alerts.html">Alerts</a></li>
+                    <li class="nav-item"><a class="nav-link" href="checkins.html">Check-ins</a></li>
+                </ul>
+                <button class="btn btn-outline-light btn-sm" onclick="handleLogout()">Log Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <!-- Time Range Selector -->
+        <div class="row mb-3">
+            <div class="col-auto">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary active" onclick="loadHistory(1, this)">1h</button>
+                    <button class="btn btn-outline-primary" onclick="loadHistory(6, this)">6h</button>
+                    <button class="btn btn-outline-primary" onclick="loadHistory(12, this)">12h</button>
+                    <button class="btn btn-outline-primary" onclick="loadHistory(24, this)">24h</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Infant State Timeline -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-title">Infant State Timeline</h6>
+                <div id="stateTimeline" class="state-timeline"></div>
+                <div class="d-flex gap-3 small text-muted mt-1">
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#0d6efd;border-radius:2px;margin-right:4px"></span>Sleeping</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#198754;border-radius:2px;margin-right:4px"></span>Awake</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#dc3545;border-radius:2px;margin-right:4px"></span>Crying</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#6c757d;border-radius:2px;margin-right:4px"></span>Absent/Unknown</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row">
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Temperature</h6>
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Humidity</h6>
+                        <canvas id="humidityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Noise Level</h6>
+                        <canvas id="noiseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Light Level</h6>
+                        <canvas id="lightChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/history.js"></script>
+</body>
+</html>
