@@ -46,6 +46,7 @@ class InfantStatusHistory(db.Model):
     humidity = db.Column(db.Float, nullable=False)
     light = db.Column(db.Integer, nullable=False)
     loudness = db.Column(db.Integer, nullable=False)
+    motion = db.Column(db.Integer, default=0)
     timestamp = db.Column(db.DateTime,default= lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -59,6 +60,7 @@ class InfantStatusHistory(db.Model):
             "cameraPresence": "infant_present" if self.presence else "unknown",
             "cameraFaceState": self.state.lower() if self.state else "unknown",
             "cameraCrying": self.crying,
+            "motion": self.motion,
             "cameraMotion": None,
             "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -71,6 +73,8 @@ class AlertHistory(db.Model):
     reason = db.Column(db.String(255), nullable=False)
     possibleCause = db.Column(db.String(255), nullable=False)
     infantState = db.Column(db.String(50), nullable=False)
+    resolved = db.Column(db.Boolean, default=False)
+    resolvedAt = db.Column(db.DateTime, nullable=True)
     timestamp = db.Column(db.DateTime,default= lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -79,8 +83,8 @@ class AlertHistory(db.Model):
             "alertReason": self.reason,
             "possibleCauses": [self.possibleCause] if self.possibleCause else [],
             "infantState": self.infantState,
-            "resolved": False,
-            "resolvedAt": None,
+            "resolved": self.resolved,
+            "resolvedAt": self.resolvedAt.strftime("%Y-%m-%d %H:%M:%S") if self.resolvedAt else None,
             "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
 
