@@ -6,33 +6,53 @@
 
 const API_BASE = "http://localhost:8080"; // Change to OpenShift URL later
 
-// Simulate a logged-in state for development
-let mockLoggedIn = true;
+function authHeaders() {
+    const token = localStorage.getItem("jwt");
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+    };
+}
 
 const API = {
 
     // --- Auth ---
     login: async function(username, password) {
-        // Mock: accept any login
-        mockLoggedIn = true;
-        return { success: true };
-        // Real:
-        // const res = await fetch(API_BASE + "/api/login", {
-        //     method: "POST",
-        //     headers: {"Content-Type": "application/json"},
-        //     credentials: "include",
-        //     body: JSON.stringify({username, password})
-        // });
-        // return await res.json();
+        const res = await fetch(API_BASE + "/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({username, password})
+        });
+        const data = await res.json();
+        if (data.token) {
+            localStorage.setItem("jwt", data.token);
+            localStorage.setItem("nurseName", data.name);
+            return { success: true };
+        }
+        return { success: false, error: data.error };
     },
 
     logout: async function() {
-        mockLoggedIn = false;
+        const token = localStorage.getItem("jwt");
+        await fetch(API_BASE + "/logout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            }
+        });
+        localStorage.removeItem("jwt");
+        localStorage.removeItem("nurseName");
         return { success: true };
     },
 
     checkSession: async function() {
-        return { loggedIn: mockLoggedIn };
+        const token = localStorage.getItem("jwt");
+        if (!token) return { loggedIn: false };
+        const res = await fetch(API_BASE + "/status", {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        return { loggedIn: res.ok };
     },
 
     // --- Dashboard ---
