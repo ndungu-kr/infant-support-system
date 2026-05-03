@@ -36,7 +36,7 @@ def init_db(app):
     db.init_app(app)
 
     # import all the models so create_all() can read and create
-    from models import Nurse, CheckInHistory, InfantStatusHistory, AlertHistory
+    from models import Nurse, CheckInHistory, InfantStatusHistory, AlertHistory, CribCheckout
 
     with app.app_context():
         db.create_all() # create all imported model tables
