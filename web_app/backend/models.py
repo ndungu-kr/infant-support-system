@@ -1,5 +1,5 @@
 from database import db
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 #Nurse table-----------------------------
 class Nurse(db.Model):
@@ -86,5 +86,28 @@ class AlertHistory(db.Model):
             "resolved": self.resolved,
             "resolvedAt": self.resolvedAt.strftime("%Y-%m-%d %H:%M:%S") if self.resolvedAt else None,
             "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+class CribCheckout(db.Model):
+    __tablename__ = "crib_checkout"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nurse_id = db.Column(db.Integer, db.ForeignKey("nurse.id"), nullable=False)
+    reason = db.Column(db.String(255), nullable=False)
+    duration_minutes = db.Column(db.Integer, nullable=False)
+    checked_out_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    returned_at = db.Column(db.DateTime, nullable=True)
+
+    nurse = db.relationship("Nurse")
+
+    def to_dict(self):
+        expected_return = self.checked_out_at + timedelta(minutes=self.duration_minutes)
+        return {
+            "id": self.id,
+            "checkedOutBy": self.nurse.name if self.nurse else None,
+            "reason": self.reason,
+            "checkedOutAt": self.checked_out_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "expectedReturnAt": expected_return.strftime("%Y-%m-%d %H:%M:%S"),
+            "returnedAt": self.returned_at.strftime("%Y-%m-%d %H:%M:%S") if self.returned_at else None
         }
 

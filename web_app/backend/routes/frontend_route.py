@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request ,redirect, url_for, render_template
 from database import db
 from extensions import bcrypt
-from models import Nurse, InfantStatusHistory, CheckInHistory, AlertHistory
+from models import Nurse, InfantStatusHistory, CheckInHistory, AlertHistory, CribCheckout
 from datetime import datetime, timezone, timedelta
 from flask_jwt_extended import jwt_required,create_access_token,get_jwt
 import re
@@ -206,3 +206,67 @@ def logout():
     logoutTokenList.add(jti)
 
     return jsonify({"message": "Logged out successfully"}), 200
+
+@frontRoute.route("/crib-status")
+@jwt_required()
+def cribStatus():
+    checkout = CribCheckout.query.filter_by(returned_at=None).order_by(CribCheckout.id.desc()).first()
+
+    if not checkout:
+        return jsonify({
+            "checkedOut": False,
+            "reason": None,
+            "checkedOutBy": None,
+            "checkedOutAt": None,
+            "expectedReturnAt": None,
+            "expired": False
+        }), 200
+
+    expected_return = checkout.checked_out_at + timedelta(minutes=checkout.duration_minutes)
+    expired = datetime.now(timezone.utc) > expected_return
+
+    return jsonify({
+        "checkedOut": True,
+        "reason": checkout.reason,
+        "checkedOutBy": checkout.nurse.name,
+        "checkedOutAt": checkout.checked_out_at.strftime("%Y-%m-%d %H:%M:%S"),
+        "expectedReturnAt": expected_return.strftime("%Y-%m-%d %H:%M:%S"),
+        "expired": expired
+    }), 200
+
+
+@frontRoute.route("/crib-checkout", methods=["POST"])
+@jwt_required()
+def cribCheckout():
+    data = request.get_json()
+    reason = data.get("reason")
+    duration_minutes = data.get("durationMinutes")
+
+    if not reason or not duration_minutes:
+        return jsonify({"success": False, "error": "Missing reason or duration"}), 400
+
+    nurse_id = get_jwt()["sub"]
+
+    checkout = CribCheckout(
+        nurse_id=int(nurse_id),
+        reason=reason,
+        duration_minutes=duration_minutes
+    )
+    db.session.add(checkout)
+    db.session.commit()
+
+    return jsonify({"success": True}), 200
+
+
+@frontRoute.route("/crib-return", methods=["POST"])
+@jwt_required()
+def cribReturn():
+    checkout = CribCheckout.query.filter_by(returned_at=None).order_by(CribCheckout.id.desc()).first()
+
+    if not checkout:
+        return jsonify({"success": False, "error": "Baby is not checked out"}), 400
+
+    checkout.returned_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    return jsonify({"success": True}), 200

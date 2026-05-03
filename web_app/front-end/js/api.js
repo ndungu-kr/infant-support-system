@@ -89,22 +89,27 @@ const API = {
 
     // --- Crib Status ---
     getCribStatus: async function() {
-        return {
-            checkedOut: false,
-            reason: null,
-            checkedOutBy: null,
-            checkedOutAt: null,
-            expectedReturnAt: null,
-            expired: false
-        };
+        const res = await fetch(API_BASE + "/crib-status", {
+            headers: authHeaders()
+        });
+        return await res.json();
     },
 
     cribCheckout: async function(reason, durationMinutes) {
-        return { success: true };
+        const res = await fetch(API_BASE + "/crib-checkout", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ reason: reason, durationMinutes: durationMinutes })
+        });
+        return await res.json();
     },
 
     cribReturn: async function() {
-        return { success: true };
+        const res = await fetch(API_BASE + "/crib-return", {
+            method: "POST",
+            headers: authHeaders()
+        });
+        return await res.json();
     },
 
     // --- History ---
