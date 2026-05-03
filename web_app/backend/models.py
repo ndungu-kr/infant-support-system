@@ -28,9 +28,9 @@ class CheckInHistory(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "nurse": self.nurse.name if self.nurse else None,
+            "nurseName": self.nurse.name if self.nurse else None,
             "action": self.action,
-            "timestamp":self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
 
 # store all the sensor history-------------------------------
@@ -50,15 +50,17 @@ class InfantStatusHistory(db.Model):
 
     def to_dict(self):
         return {
-            "presence": self.presence,
-            "state": self.state,
-            "crying": self.crying,
-            "cryingDuration":self.cryingDuration,
-            "temperature":self.temperature,
-            "humidity":self.humidity,
-            "light":self.light,
-            "loudness":self.loudness,
-            "timestamp":self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "infantState": self.state,
+            "cryingDurationMins": self.cryingDuration,
+            "temperature": self.temperature,
+            "humidity": self.humidity,
+            "light": self.light,
+            "loudness": self.loudness,
+            "cameraPresence": "infant_present" if self.presence else "unknown",
+            "cameraFaceState": self.state.lower() if self.state else "unknown",
+            "cameraCrying": self.crying,
+            "cameraMotion": None,
+            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
 
 # store all the alerts history------------------------------
@@ -73,10 +75,12 @@ class AlertHistory(db.Model):
 
     def to_dict(self):
         return {
-            "level": self.level,
-            "reason": self.reason,
-            "possibleCause":self.possibleCause,
+            "alertLevel": self.level,
+            "alertReason": self.reason,
+            "possibleCauses": [self.possibleCause] if self.possibleCause else [],
             "infantState": self.infantState,
-            "timestamp":self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "resolved": False,
+            "resolvedAt": None,
+            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
 
