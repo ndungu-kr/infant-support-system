@@ -79,6 +79,7 @@ def telemetry():
         humidity = data["humidity"],
         light = data["light"],
         loudness = data["loudness"],
+        motion = data.get("motion", 0),
         timestamp = datetime.fromisoformat(data["timestamp"].replace("Z","+00:00")).replace(tzinfo=None)
     )
 
