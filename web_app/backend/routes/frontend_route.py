@@ -97,12 +97,29 @@ def summary():
         CheckInHistory.timestamp < start_of_tomorrow
     ).count()
 
+    # count crying episodes today
+    cryingCount = AlertHistory.query.filter(
+        AlertHistory.timestamp >= start_of_today,
+        AlertHistory.timestamp < start_of_tomorrow,
+        AlertHistory.infantState == "CRYING"
+    ).count()
+
     lastCheckIn = CheckInHistory.query.order_by(CheckInHistory.id.desc()).first()
     
     if not lastCheckIn:
-        return jsonify({"totalCheckinsToday": 0, "lastCheckinTime": None, "lastCheckinNurse": None}), 200
+        return jsonify({
+            "cryingEpisodesToday": cryingCount,
+            "totalCheckinsToday": 0,
+            "lastCheckinTime": None,
+            "lastCheckinNurse": None
+        }), 200
 
-    return jsonify({"totalCheckinsToday": count, "lastCheckinTime": lastCheckIn.timestamp.strftime("%Y-%m-%d %H:%M:%S"), "lastCheckinNurse": lastCheckIn.nurse.name})
+    return jsonify({
+        "cryingEpisodesToday": cryingCount,
+        "totalCheckinsToday": count,
+        "lastCheckinTime": lastCheckIn.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        "lastCheckinNurse": lastCheckIn.nurse.name
+    }), 200
 
 # return all the checkin record based on the given date
 @frontRoute.route("/checkins")
