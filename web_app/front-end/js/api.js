@@ -18,7 +18,7 @@ const API = {
 
     // --- Auth ---
     login: async function(username, password) {
-        const res = await fetch(API_BASE + "/login", {
+        const res = await fetch(API_BASE + "/api/login", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({username, password})
@@ -34,7 +34,7 @@ const API = {
 
     logout: async function() {
         const token = localStorage.getItem("jwt");
-        await fetch(API_BASE + "/logout", {
+        await fetch(API_BASE + "/api/logout", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -49,7 +49,7 @@ const API = {
     checkSession: async function() {
         const token = localStorage.getItem("jwt");
         if (!token) return { loggedIn: false };
-        const res = await fetch(API_BASE + "/status", {
+        const res = await fetch(API_BASE + "/api/status", {
             headers: { "Authorization": "Bearer " + token }
         });
         return { loggedIn: res.ok };
@@ -57,14 +57,14 @@ const API = {
 
     // --- Dashboard ---
     getStatus: async function() {
-        const res = await fetch(API_BASE + "/status", {
+        const res = await fetch(API_BASE + "/api/status", {
             headers: authHeaders()
         });
         return await res.json();
     },
 
     getSummary: async function() {
-        const res = await fetch(API_BASE + "/summary", {
+        const res = await fetch(API_BASE + "/api/summary", {
             headers: authHeaders()
         });
         return await res.json();
@@ -72,14 +72,14 @@ const API = {
 
     // --- Crib Status ---
     getCribStatus: async function() {
-        const res = await fetch(API_BASE + "/crib-status", {
+        const res = await fetch(API_BASE + "/api/crib-status", {
             headers: authHeaders()
         });
         return await res.json();
     },
 
     cribCheckout: async function(reason, durationMinutes) {
-        const res = await fetch(API_BASE + "/crib-checkout", {
+        const res = await fetch(API_BASE + "/api/crib-checkout", {
             method: "POST",
             headers: authHeaders(),
             body: JSON.stringify({ reason: reason, durationMinutes: durationMinutes })
@@ -88,7 +88,7 @@ const API = {
     },
 
     cribReturn: async function() {
-        const res = await fetch(API_BASE + "/crib-return", {
+        const res = await fetch(API_BASE + "/api/crib-return", {
             method: "POST",
             headers: authHeaders()
         });
@@ -101,7 +101,7 @@ const API = {
         const start = new Date(now.getTime() - hours * 60 * 60 * 1000);
         const startStr = start.toISOString().split("T")[0];
         const endStr = now.toISOString().split("T")[0];
-        const res = await fetch(API_BASE + "/history?start=" + startStr + "&end=" + endStr, {
+        const res = await fetch(API_BASE + "/api/history?start=" + startStr + "&end=" + endStr, {
             headers: authHeaders()
         });
         return await res.json();
@@ -113,7 +113,7 @@ const API = {
         const weekAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000); // alerts for past 3 days
         const startStr = weekAgo.toISOString().split("T")[0];
         const endStr = now.toISOString().split("T")[0];
-        const res = await fetch(API_BASE + "/alert?start=" + startStr + "&end=" + endStr, {
+        const res = await fetch(API_BASE + "/api/alert?start=" + startStr + "&end=" + endStr, {
             headers: authHeaders()
         });
         return await res.json();
@@ -125,14 +125,14 @@ const API = {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const startStr = weekAgo.toISOString().split("T")[0];
         const endStr = now.toISOString().split("T")[0];
-        const res = await fetch(API_BASE + "/checkins?start=" + startStr + "&end=" + endStr, {
+        const res = await fetch(API_BASE + "/api/checkins?start=" + startStr + "&end=" + endStr, {
             headers: authHeaders()
         });
         return await res.json();
     },
 
     updateCheckinAction: async function(checkinId, action) {
-        const res = await fetch(API_BASE + "/checkin/update", {
+        const res = await fetch(API_BASE + "/api/checkin/update", {
             method: "POST",
             headers: authHeaders(),
             body: JSON.stringify({ id: checkinId, action: action })

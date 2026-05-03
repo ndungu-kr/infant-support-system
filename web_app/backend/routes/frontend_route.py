@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request ,redirect, url_for, render_template
+from flask import Blueprint, jsonify, request, redirect, url_for, send_from_directory
 from database import db
 from extensions import bcrypt
 from models import Nurse, InfantStatusHistory, CheckInHistory, AlertHistory, CribCheckout
@@ -40,51 +40,33 @@ def login():
             return jsonify({"error": "Invalid credentials"}), 200
     
     else:
-        #return render_template("")
-        return "loginPage"
-    
-# return the dashboard page
-@frontRoute.route("/dashboard")
-@jwt_required()
-def dashboard():
-    #return render_template("")
-    return "dashboard"
+        return send_from_directory("../front-end", "index.html")
 
 # return the latest telemetry data + online flag (if the last telemetry < 60s ago)
-@frontRoute.route("/status")
-@jwt_required()
-def status():
-    now = datetime.now()
-    statusHistory = InfantStatusHistory.query.order_by(InfantStatusHistory.id.desc()).first()
-    
-    if not statusHistory:
-        return jsonify({}), 200
-    
-    diff = (now-statusHistory.timestamp).total_seconds()
+@frontRoute.route("/login")
+def loginPage():
+    return send_from_directory("../front-end", "index.html")
 
-    # get the most recent unresolved alert
-    latestAlert = AlertHistory.query.filter_by(resolved=False).order_by(AlertHistory.id.desc()).first()
+@frontRoute.route("/api/login", methods=["POST"])
+def loginApi():
+    username = request.get_json().get("username")
+    password = request.get_json().get("password")
 
-    # calculate minutes since last check-in
-    lastCheckin = CheckInHistory.query.order_by(CheckInHistory.id.desc()).first()
-    if lastCheckin:
-        minutesSinceCare = int((now - lastCheckin.timestamp).total_seconds() / 60)
+    nurse = Nurse.query.filter_by(username=username).first()
+    
+    if nurse and bcrypt.check_password_hash(nurse.password, password):
+        token = create_access_token(identity=str(nurse.id))
+        return jsonify({
+            "token": token,
+            "id": nurse.id,
+            "name": nurse.name
+        }), 200
+    
     else:
-        minutesSinceCare = -1
-
-    statusHistoryDict = statusHistory.to_dict()
-    statusHistoryDict.update({
-        "online": diff <= 60,
-        "alertLevel": latestAlert.level if latestAlert else "NONE",
-        "alertReason": latestAlert.reason if latestAlert else "",
-        "possibleCauses": [latestAlert.possibleCause] if latestAlert and latestAlert.possibleCause else [],
-        "minutesSinceCare": minutesSinceCare
-    })
-
-    return jsonify(statusHistoryDict), 200
+        return jsonify({"error": "Invalid credentials"}), 200
 
 # return the latest checkin history and the total checkins today
-@frontRoute.route("/summary")
+@frontRoute.route("/api/summary")
 @jwt_required()
 def summary():
     now = datetime.now()
@@ -122,7 +104,7 @@ def summary():
     }), 200
 
 # return all the checkin record based on the given date
-@frontRoute.route("/checkins")
+@frontRoute.route("/api/checkins")
 @jwt_required()
 def checkins():
     start_str = request.args.get("start")
@@ -142,7 +124,7 @@ def checkins():
     return jsonify([h.to_dict() for h in checkinHistorys]), 200
 
 # return all the telemetry record based on the given date
-@frontRoute.route("/history")
+@frontRoute.route("/api/history")
 @jwt_required()
 def history(): 
     start_str = request.args.get("start")
@@ -162,7 +144,7 @@ def history():
     return jsonify([h.to_dict() for h in infantStatusHistorys]), 200
 
 # return all the alert record based on the given date
-@frontRoute.route("/alert")
+@frontRoute.route("/api/alert")
 @jwt_required()
 def alert(): 
     start_str = request.args.get("start")
@@ -182,7 +164,7 @@ def alert():
     return jsonify([h.to_dict() for h in alertHistorys]), 200
 
 # update the checkin record with an action
-@frontRoute.route("/checkin/update", methods=["POST"])
+@frontRoute.route("/api/checkin/update", methods=["POST"])
 @jwt_required()
 def checkinUpdate(): 
     id = request.get_json().get("id")
@@ -199,7 +181,7 @@ def checkinUpdate():
     
     return jsonify({"status": "success"}), 200
 
-@frontRoute.route("/logout",methods=["POST"])
+@frontRoute.route("/api/logout",methods=["POST"])
 @jwt_required()
 def logout():
     jti = get_jwt()["jti"]
@@ -207,7 +189,7 @@ def logout():
 
     return jsonify({"message": "Logged out successfully"}), 200
 
-@frontRoute.route("/crib-status")
+@frontRoute.route("/api/crib-status")
 @jwt_required()
 def cribStatus():
     checkout = CribCheckout.query.filter_by(returned_at=None).order_by(CribCheckout.id.desc()).first()
@@ -235,7 +217,7 @@ def cribStatus():
     }), 200
 
 
-@frontRoute.route("/crib-checkout", methods=["POST"])
+@frontRoute.route("/api/crib-checkout", methods=["POST"])
 @jwt_required()
 def cribCheckout():
     data = request.get_json()
@@ -258,7 +240,7 @@ def cribCheckout():
     return jsonify({"success": True}), 200
 
 
-@frontRoute.route("/crib-return", methods=["POST"])
+@frontRoute.route("/api/crib-return", methods=["POST"])
 @jwt_required()
 def cribReturn():
     checkout = CribCheckout.query.filter_by(returned_at=None).order_by(CribCheckout.id.desc()).first()
@@ -270,3 +252,20 @@ def cribReturn():
     db.session.commit()
 
     return jsonify({"success": True}), 200
+
+@frontRoute.route("/dashboard")
+def dashboardPage():
+    return send_from_directory("../front-end", "dashboard.html")
+
+@frontRoute.route("/history")
+def historyPage():
+    return send_from_directory("../front-end", "history.html")
+
+@frontRoute.route("/alerts")
+def alertsPage():
+    return send_from_directory("../front-end", "alerts.html")
+
+@frontRoute.route("/checkins")
+def checkinsPage():
+    return send_from_directory("../front-end", "checkins.html")
+
