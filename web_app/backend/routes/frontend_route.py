@@ -58,12 +58,28 @@ def status():
     statusHistory = InfantStatusHistory.query.order_by(InfantStatusHistory.id.desc()).first()
     
     if not statusHistory:
-        return "", 200
+        return jsonify({}), 200
     
     diff = (now-statusHistory.timestamp).total_seconds()
 
+    # get the most recent unresolved alert
+    latestAlert = AlertHistory.query.filter_by(resolved=False).order_by(AlertHistory.id.desc()).first()
+
+    # calculate minutes since last check-in
+    lastCheckin = CheckInHistory.query.order_by(CheckInHistory.id.desc()).first()
+    if lastCheckin:
+        minutesSinceCare = int((now - lastCheckin.timestamp).total_seconds() / 60)
+    else:
+        minutesSinceCare = -1
+
     statusHistoryDict = statusHistory.to_dict()
-    statusHistoryDict.update({"online": diff <= 60})
+    statusHistoryDict.update({
+        "online": diff <= 60,
+        "alertLevel": latestAlert.level if latestAlert else "NONE",
+        "alertReason": latestAlert.reason if latestAlert else "",
+        "possibleCauses": [latestAlert.possibleCause] if latestAlert and latestAlert.possibleCause else [],
+        "minutesSinceCare": minutesSinceCare
+    })
 
     return jsonify(statusHistoryDict), 200
 
