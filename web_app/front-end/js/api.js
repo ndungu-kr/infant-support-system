@@ -4,7 +4,7 @@
 // with fetch() calls to the real API
 // ============================================
 
-const API_BASE = "http://localhost:8080"; // Change to OpenShift URL later
+const API_BASE = ""; // Change to OpenShift URL later
 
 function authHeaders() {
     const token = localStorage.getItem("jwt");

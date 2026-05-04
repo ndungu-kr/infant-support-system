@@ -52,7 +52,7 @@ app.register_blueprint(piRoute)
 # basic route----------------------------------------
 @app.route("/")
 def home():
-    return redirect(url_for("frontRoute.login"))
+    return redirect(url_for("frontRoute.loginPage"))
 
 # main -----------------------------------------------
 if __name__ == "__main__":
