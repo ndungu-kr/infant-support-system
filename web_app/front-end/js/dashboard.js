@@ -82,8 +82,8 @@ async function updateStatus() {
         status.loudness !== undefined ? formatNoise(status.loudness) : "-";
     document.getElementById("sensorMotion").textContent = 
         status.motion === 1 ? "Detected" : "None";
-    document.getElementById("sensorCare").textContent = 
-        status.minutesSinceCare === -1 ? "Never" : status.minutesSinceCare + " min";
+        document.getElementById("sensorCare").textContent = 
+        (status.minutesSinceCare === undefined || status.minutesSinceCare === -1) ? "-" : status.minutesSinceCare + " min";
     document.getElementById("sensorCamera").textContent = 
         status.cameraPresence === "infant_present" ? "Present" : "Not found";
 }
