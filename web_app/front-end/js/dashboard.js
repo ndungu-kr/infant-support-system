@@ -14,7 +14,7 @@ function formatNoise(raw) {
     else if (raw < 300) label = "Moderate";
     else if (raw < 500) label = "Loud";
     else label = "Very Loud";
-    return raw + " (" + label + ")";
+    return raw + "dB (" + label + ")";
 }
 
 function formatLight(raw) {
@@ -23,7 +23,7 @@ function formatLight(raw) {
     else if (raw < 300) label = "Dim";
     else if (raw < 600) label = "Moderate";
     else label = "Bright";
-    return raw + " (" + label + ")";
+    return raw + " lux (" + label + ")";
 }
 
 async function updateStatus() {
