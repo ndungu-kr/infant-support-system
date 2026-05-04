@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISS - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">Infant Support System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="history.html">History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="alerts.html">Alerts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="checkins.html">Check-ins</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span id="connectionStatus" class="text-white me-3">
+                        <span class="status-dot online"></span>System Online
+                    </span>
+                    <button class="btn btn-outline-light btn-sm" onclick="handleLogout()">Log Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-3">
+
+        <!-- Alert Banner (hidden when no alert) -->
+        <div id="alertBanner" class="alert-banner d-none">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong id="alertLevel"></strong>
+                    <span id="alertReason"></span>
+                    <div id="alertCauses" class="mt-1 small"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crib Checkout Banner (hidden when baby is in crib) -->
+        <div id="checkoutBanner" class="checkout-banner d-none">
+            <strong>Baby out of crib</strong>
+            <span id="checkoutReason"></span>
+            <div id="checkoutCountdown" class="mt-1"></div>
+            <button class="btn btn-info btn-sm mt-2" onclick="handleCribReturn()">Baby Returned</button>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: State + Alert -->
+            <div class="col-lg-4 mb-3">
+                <!-- Infant State -->
+                <div id="stateDisplay" class="state-display state-unknown">
+                    LOADING...
+                </div>
+
+                <!-- Crib Checkout Button -->
+                <div id="checkoutButtonArea" class="d-grid mb-3">
+                    <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                        Baby Out of Crib
+                    </button>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6 summary-card">
+                                <div class="value" id="cryingEpisodes">-</div>
+                                <div class="label">Crying episodes today</div>
+                            </div>
+                            <div class="col-6 summary-card">
+                                <div class="value" id="totalCheckins">-</div>
+                                <div class="label">Check-ins today</div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="text-center small text-muted">
+                            Last check-in: <span id="lastCheckin">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Sensor Readings -->
+            <div class="col-lg-8">
+                <div class="row">
+                    <!-- Temperature -->
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-thermometer-half text-danger fs-4"></i>
+                                <div class="text-muted small">Temperature</div>
+                                <div class="sensor-value" id="sensorTemp">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Humidity -->
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-droplet-half text-primary fs-4"></i>
+                                <div class="text-muted small">Humidity</div>
+                                <div class="sensor-value" id="sensorHumidity">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Light -->
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-brightness-high text-warning fs-4"></i>
+                                <div class="text-muted small">Light</div>
+                                <div class="sensor-value" id="sensorLight">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Noise -->
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-volume-up text-info fs-4"></i>
+                                <div class="text-muted small">Noise</div>
+                                <div class="sensor-value" id="sensorLoudness">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="row">
+                    <div class="col-md-4 col-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person-walking text-success fs-4"></i>
+                                <div class="text-muted small">Motion</div>
+                                <div class="sensor-value" id="sensorMotion">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clock-history text-secondary fs-4"></i>
+                                <div class="text-muted small">Minutes Since Care</div>
+                                <div class="sensor-value" id="sensorCare">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-camera-video text-dark fs-4"></i>
+                                <div class="text-muted small">Camera</div>
+                                <div class="sensor-value" id="sensorCamera">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Check-in Action -->
+                <div id="pendingCheckin" class="card mb-3 d-none">
+                    <div class="card-body">
+                        <strong>Recent check-in needs action recorded</strong>
+                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                            <button class="btn btn-sm btn-outline-primary" onclick="recordAction('feed')">Feed</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="recordAction('nappy_change')">Nappy Change</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="recordAction('comfort')">Comfort</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="recordAction('routine_check')">Routine Check</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crib Checkout Modal -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Baby Out of Crib</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <select class="form-select" id="checkoutReason">
+                            <option value="feeding">Feeding</option>
+                            <option value="bathing">Bathing</option>
+                            <option value="medical_check">Medical Check</option>
+                            <option value="skin_to_skin">Skin-to-Skin Contact</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Duration (minutes)</label>
+                        <select class="form-select" id="checkoutDuration">
+                            <option value="15">15 minutes</option>
+                            <option value="30" selected>30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">60 minutes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" onclick="handleCribCheckout()">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio for alerts -->
+    <audio id="alertSound" preload="auto">
+        <source src="https://cdn.freesound.org/previews/234/234524_1676145-lq.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

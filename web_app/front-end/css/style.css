@@ -1,0 +1,312 @@
+/* ============================================
+   INFANT SUPPORT SYSTEM - Theme
+   ============================================ */
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f0f2f5;
+}
+
+/* --- Navbar --- */
+.navbar {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 0.6rem 1rem;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* --- Cards --- */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* --- State Display --- */
+.state-display {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.state-sleeping {
+    background: linear-gradient(135deg, #cfe2ff 0%, #a8c7fa 100%);
+    color: #0a4da0;
+}
+
+.state-awake {
+    background: linear-gradient(135deg, #d1e7dd 0%, #a3d9b1 100%);
+    color: #0f5132;
+}
+
+.state-crying {
+    background: linear-gradient(135deg, #f8d7da 0%, #f1a9b0 100%);
+    color: #842029;
+    animation: pulseAlert 2s ease-in-out infinite;
+}
+
+.state-absent {
+    background: linear-gradient(135deg, #f8d7da 0%, #e6808a 100%);
+    color: #58151c;
+    animation: pulseAlert 1.5s ease-in-out infinite;
+}
+
+.state-unknown {
+    background: linear-gradient(135deg, #e2e3e5 0%, #c4c6c8 100%);
+    color: #41464b;
+}
+
+@keyframes pulseAlert {
+    0%, 100% { box-shadow: 0 4px 15px rgba(220, 53, 69, 0.15); }
+    50% { box-shadow: 0 4px 25px rgba(220, 53, 69, 0.35); }
+}
+
+/* --- Alert Banner --- */
+.alert-banner {
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.alert-high {
+    background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%);
+    border: 2px solid #dc3545;
+    color: #842029;
+}
+
+.alert-low {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border: 2px solid #ffc107;
+    color: #664d03;
+}
+
+/* --- Connection Status --- */
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.status-dot.online {
+    background-color: #198754;
+    box-shadow: 0 0 6px rgba(25, 135, 84, 0.6);
+    animation: glow 2s ease-in-out infinite;
+}
+
+.status-dot.offline {
+    background-color: #dc3545;
+    box-shadow: 0 0 6px rgba(220, 53, 69, 0.6);
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 4px rgba(25, 135, 84, 0.4); }
+    50% { box-shadow: 0 0 10px rgba(25, 135, 84, 0.8); }
+}
+
+/* --- Summary Cards --- */
+.summary-card {
+    text-align: center;
+    padding: 1rem;
+}
+
+.summary-card .value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.summary-card .label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+/* --- Sensor Cards --- */
+.sensor-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.card .text-muted.small {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+/* --- State Timeline --- */
+.state-timeline {
+    display: flex;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.state-timeline .segment {
+    height: 100%;
+    transition: opacity 0.2s;
+}
+
+.state-timeline .segment:hover {
+    opacity: 0.8;
+}
+
+/* --- Tables --- */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem 1rem;
+}
+
+.table tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.04);
+}
+
+/* --- Checkout Banner --- */
+.checkout-banner {
+    background: linear-gradient(135deg, #cff4fc 0%, #9eeaf9 100%);
+    border: 2px solid #0dcaf0;
+    color: #055160;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* --- Buttons --- */
+.btn-outline-primary {
+    border-radius: 8px;
+}
+
+.btn-outline-info {
+    border-radius: 8px;
+}
+
+.btn-group .btn {
+    border-radius: 8px !important;
+    margin: 0 2px;
+}
+
+/* --- Login Card --- */
+.card.shadow-sm {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+.card.shadow-sm .card-body {
+    padding: 2rem !important;
+}
+
+.card.shadow-sm h3 {
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.card.shadow-sm .form-control {
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+}
+
+.card.shadow-sm .btn-primary {
+    border-radius: 8px;
+    padding: 0.6rem;
+    font-weight: 600;
+}
+
+/* --- Badge styling --- */
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.7em;
+    border-radius: 6px;
+}
+
+.action-badge {
+    text-transform: capitalize;
+}
+
+/* --- Pending check-in card --- */
+#pendingCheckin .card-body {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border-radius: 12px;
+}
+
+/* --- Modal --- */
+.modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-footer {
+    border-top: 1px solid #f0f0f0;
+}
+
+/* --- Charts --- */
+canvas {
+    max-height: 250px;
+}
+
+/* --- Time range buttons --- */
+.btn-group .btn.active {
+    font-weight: 600;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .state-display {
+        font-size: 1.8rem;
+        padding: 1.25rem;
+    }
+
+    .summary-card .value {
+        font-size: 1.5rem;
+    }
+
+    .sensor-value {
+        font-size: 1.2rem;
+    }
+
+    .table {
+        font-size: 0.85rem;
+    }
+}
