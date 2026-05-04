@@ -64,6 +64,36 @@ def loginApi():
     
     else:
         return jsonify({"error": "Invalid credentials"}), 200
+    
+@frontRoute.route("/api/status")
+@jwt_required()
+def status():
+    now = datetime.now()
+    statusHistory = InfantStatusHistory.query.order_by(InfantStatusHistory.id.desc()).first()
+    
+    if not statusHistory:
+        return jsonify({}), 200
+    
+    diff = (now-statusHistory.timestamp).total_seconds()
+
+    latestAlert = AlertHistory.query.filter_by(resolved=False).order_by(AlertHistory.id.desc()).first()
+
+    lastCheckin = CheckInHistory.query.order_by(CheckInHistory.id.desc()).first()
+    if lastCheckin:
+        minutesSinceCare = int((now - lastCheckin.timestamp).total_seconds() / 60)
+    else:
+        minutesSinceCare = -1
+
+    statusHistoryDict = statusHistory.to_dict()
+    statusHistoryDict.update({
+        "online": diff <= 60,
+        "alertLevel": latestAlert.level if latestAlert else "NONE",
+        "alertReason": latestAlert.reason if latestAlert else "",
+        "possibleCauses": [latestAlert.possibleCause] if latestAlert and latestAlert.possibleCause else [],
+        "minutesSinceCare": minutesSinceCare
+    })
+
+    return jsonify(statusHistoryDict), 200    
 
 # return the latest checkin history and the total checkins today
 @frontRoute.route("/api/summary")
