@@ -86,3 +86,26 @@ def telemetry():
     db.session.commit()
 
     return jsonify({"status": "success"}), 200
+
+# Return crib checkout status to Pi (HMAC protected)
+@piRoute.route("/pi-crib-status", methods=["GET"])
+def piCribStatus():
+    from models import CribCheckout
+    from datetime import datetime, timezone, timedelta
+
+    checkout = CribCheckout.query.filter_by(returned_at=None).order_by(CribCheckout.id.desc()).first()
+
+    if not checkout:
+        return jsonify({
+            "checkedOut": False,
+            "expired": False
+        }), 200
+
+    expected_return = checkout.checked_out_at + timedelta(minutes=checkout.duration_minutes)
+    expired = datetime.now(timezone.utc) > expected_return
+
+    return jsonify({
+        "checkedOut": True,
+        "expired": expired
+    }), 200
+

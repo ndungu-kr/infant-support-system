@@ -43,13 +43,14 @@ def loginApi():
 @frontRoute.route("/api/status")
 @jwt_required()
 def status():
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     statusHistory = InfantStatusHistory.query.order_by(InfantStatusHistory.id.desc()).first()
     
     if not statusHistory:
         return jsonify({}), 200
     
-    diff = (now-statusHistory.timestamp).total_seconds()
+    diff = (now - statusHistory.timestamp.replace(tzinfo=timezone.utc)).total_seconds()
+    print("DIFF:", diff, "NOW:", now, "TIMESTAMP:", statusHistory.timestamp)
 
     latestAlert = AlertHistory.query.filter_by(resolved=False).order_by(AlertHistory.id.desc()).first()
 
