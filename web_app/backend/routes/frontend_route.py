@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, redirect, url_for, send_from_directory
+from flask import Blueprint, jsonify, request, send_from_directory
 from database import db
 from extensions import bcrypt
 from models import Nurse, InfantStatusHistory, CheckInHistory, AlertHistory, CribCheckout
@@ -16,31 +16,6 @@ def validate_input(input):
     if not input:
         return False
     return re.match(r"^[a-zA-Z0-9 _-]+$", input) is not None
-
-# for user login, return the jwt token for session control
-@frontRoute.route("/login",methods=["GET","POST"])
-def login():
-    if request.method == "POST":
-        username = request.get_json().get("username")
-        password = request.get_json().get("password")
-
-        # get nurse with the username from database
-        nurse = Nurse.query.filter_by(username=username).first()
-        
-        # check if there is nurse with the username then check for password
-        if nurse and bcrypt.check_password_hash(nurse.password, password):
-            token = create_access_token(identity=str(nurse.id)) # create access token and return it to store at front end
-            return jsonify({
-                "token": token,
-                "id": nurse.id,
-                "name": nurse.name
-            }), 200
-        
-        else:
-            return jsonify({"error": "Invalid credentials"}), 200
-    
-    else:
-        return send_from_directory("../front-end", "index.html")
 
 # return the latest telemetry data + online flag (if the last telemetry < 60s ago)
 @frontRoute.route("/login")

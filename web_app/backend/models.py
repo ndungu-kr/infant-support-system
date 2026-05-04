@@ -57,7 +57,7 @@ class InfantStatusHistory(db.Model):
             "humidity": self.humidity,
             "light": self.light,
             "loudness": self.loudness,
-            "cameraPresence": "infant_present" if self.presence else "unknown",
+            "cameraPresence": "infant_present" if self.presence else "absent",
             "cameraFaceState": self.state.lower() if self.state else "unknown",
             "cameraCrying": self.crying,
             "motion": self.motion,

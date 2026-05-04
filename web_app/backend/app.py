@@ -1,6 +1,5 @@
 import os
 from flask import Flask, redirect, url_for, jsonify
-from flask_cors import CORS
 from datetime import timedelta
 
 from database import init_db
@@ -12,14 +11,13 @@ from extensions import bcrypt, jwt
 from dotenv import load_dotenv
 load_dotenv()
 
-app = app = Flask(__name__, instance_path="/tmp", static_folder="../front-end", static_url_path="")
+app = Flask(__name__, instance_path="/tmp", static_folder="../front-end", static_url_path="")
 
 # JWT config---------------------------------------
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=8)
 
 # init all extensions-------------------------
-CORS(app, supports_credentials=True)
 init_db(app)
 bcrypt.init_app(app)
 jwt.init_app(app)

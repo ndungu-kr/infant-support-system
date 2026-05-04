@@ -1,9 +1,3 @@
-// ============================================
-// API Module - Mock data for development
-// When backend is ready, replace mock returns
-// with fetch() calls to the real API
-// ============================================
-
 const API_BASE = ""; // Change to OpenShift URL later
 
 function authHeaders() {
