@@ -111,6 +111,20 @@
         ]
     },
     {
+        "id": "0fbd1d1dc7fe0c5e",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": false,
+        "alpnprotocol": ""
+    },
+    {
         "id": "9fc54a5524043d57",
         "type": "serial in",
         "z": "6236dbe166d9dd7a",
@@ -587,7 +601,7 @@
         "ret": "obj",
         "paytoqs": "ignore",
         "url": "https://infant-support-system-git-infant-support-system.apps.containers.cs.cf.ac.uk/api/telemetry",
-        "tls": "",
+        "tls": "0fbd1d1dc7fe0c5e",
         "persist": false,
         "proxy": "",
         "insecureHTTPParser": false,
@@ -683,7 +697,7 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "{\"motion\":1,\"temp\":\"22.0\",\"humidity\":\"45.0\",\"light\":200,\"loudness\":100,\"rfid\":\"NURSE001\"}",
+        "payload": "{\"motion\":1,\"temp\":\"22.0\",\"humidity\":\"45.0\",\"light\":200,\"loudness\":100,\"rfid\":\"asdasd\"}",
         "payloadType": "str",
         "x": 180,
         "y": 320,
@@ -729,7 +743,8 @@
         "y": 340,
         "wires": [
             [
-                "7cba11b202f151ce"
+                "7cba11b202f151ce",
+                "b8961e36832ba6af"
             ]
         ]
     },
@@ -742,7 +757,7 @@
         "ret": "obj",
         "paytoqs": "ignore",
         "url": "https://infant-support-system-git-infant-support-system.apps.containers.cs.cf.ac.uk/api/checkin",
-        "tls": "",
+        "tls": "0fbd1d1dc7fe0c5e",
         "persist": false,
         "proxy": "",
         "insecureHTTPParser": false,
@@ -784,7 +799,7 @@
         "ret": "obj",
         "paytoqs": "ignore",
         "url": "https://infant-support-system-git-infant-support-system.apps.containers.cs.cf.ac.uk/api/alert",
-        "tls": "",
+        "tls": "0fbd1d1dc7fe0c5e",
         "persist": false,
         "proxy": "",
         "insecureHTTPParser": false,
@@ -822,26 +837,6 @@
         "y": 460,
         "wires": [
             [
-                "effeb7f6330c1e48"
-            ]
-        ]
-    },
-    {
-        "id": "effeb7f6330c1e48",
-        "type": "function",
-        "z": "6236dbe166d9dd7a",
-        "name": "Build Crib Status Request",
-        "func": "msg.method = \"GET\";\nmsg.url = \"https://infant-support-system-git-infant-support-system.apps.containers.cs.cf.ac.uk/api/pi-crib-status\";\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 390,
-        "y": 460,
-        "wires": [
-            [
                 "6eda4d5536e8f85b"
             ]
         ]
@@ -858,7 +853,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 830,
+        "x": 610,
         "y": 460,
         "wires": [
             []
@@ -869,23 +864,39 @@
         "type": "http request",
         "z": "6236dbe166d9dd7a",
         "name": "",
-        "method": "use",
+        "method": "GET",
         "ret": "obj",
         "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
+        "url": "https://infant-support-system-git-infant-support-system.apps.containers.cs.cf.ac.uk/api/pi-crib-status",
+        "tls": "0fbd1d1dc7fe0c5e",
         "persist": false,
         "proxy": "",
         "insecureHTTPParser": false,
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 610,
+        "x": 390,
         "y": 460,
         "wires": [
             [
                 "c352d82127fc00b0"
             ]
         ]
+    },
+    {
+        "id": "b8961e36832ba6af",
+        "type": "debug",
+        "z": "6236dbe166d9dd7a",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 280,
+        "wires": []
     }
 ]
