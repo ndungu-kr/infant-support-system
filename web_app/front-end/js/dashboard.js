@@ -14,7 +14,7 @@ function formatNoise(raw) {
     else if (raw < 300) label = "Moderate";
     else if (raw < 500) label = "Loud";
     else label = "Very Loud";
-    return raw + " (" + label + ")";
+    return raw + "dB (" + label + ")";
 }
 
 function formatLight(raw) {
@@ -23,7 +23,7 @@ function formatLight(raw) {
     else if (raw < 300) label = "Dim";
     else if (raw < 600) label = "Moderate";
     else label = "Bright";
-    return raw + " (" + label + ")";
+    return raw + " lux (" + label + ")";
 }
 
 async function updateStatus() {
@@ -82,8 +82,8 @@ async function updateStatus() {
         status.loudness !== undefined ? formatNoise(status.loudness) : "-";
     document.getElementById("sensorMotion").textContent = 
         status.motion === 1 ? "Detected" : "None";
-    document.getElementById("sensorCare").textContent = 
-        status.minutesSinceCare === -1 ? "Never" : status.minutesSinceCare + " min";
+        document.getElementById("sensorCare").textContent = 
+        (status.minutesSinceCare === undefined || status.minutesSinceCare === -1) ? "-" : status.minutesSinceCare + " min";
     document.getElementById("sensorCamera").textContent = 
         status.cameraPresence === "infant_present" ? "Present" : "Not found";
 }
@@ -205,4 +205,4 @@ function refreshAll() {
 refreshAll();
 
 // Poll every 10 seconds
-setInterval(refreshAll, 10000);
+setInterval(refreshAll, 5000);

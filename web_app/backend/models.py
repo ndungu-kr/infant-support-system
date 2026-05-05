@@ -1,5 +1,5 @@
 from database import db
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 #Nurse table-----------------------------
 class Nurse(db.Model):
@@ -28,9 +28,9 @@ class CheckInHistory(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "nurse": self.nurse.name if self.nurse else None,
+            "nurseName": self.nurse.name if self.nurse else None,
             "action": self.action,
-            "timestamp":self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
 
 # store all the sensor history-------------------------------
@@ -46,19 +46,23 @@ class InfantStatusHistory(db.Model):
     humidity = db.Column(db.Float, nullable=False)
     light = db.Column(db.Integer, nullable=False)
     loudness = db.Column(db.Integer, nullable=False)
+    motion = db.Column(db.Integer, default=0)
     timestamp = db.Column(db.DateTime,default= lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {
-            "presence": self.presence,
-            "state": self.state,
-            "crying": self.crying,
-            "cryingDuration":self.cryingDuration,
-            "temperature":self.temperature,
-            "humidity":self.humidity,
-            "light":self.light,
-            "loudness":self.loudness,
-            "timestamp":self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "infantState": self.state,
+            "cryingDurationMins": self.cryingDuration,
+            "temperature": self.temperature,
+            "humidity": self.humidity,
+            "light": self.light,
+            "loudness": self.loudness,
+            "cameraPresence": "infant_present" if self.presence else "absent",
+            "cameraFaceState": self.state.lower() if self.state else "unknown",
+            "cameraCrying": self.crying,
+            "motion": self.motion,
+            "cameraMotion": None,
+            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
 
 # store all the alerts history------------------------------
@@ -69,14 +73,41 @@ class AlertHistory(db.Model):
     reason = db.Column(db.String(255), nullable=False)
     possibleCause = db.Column(db.String(255), nullable=False)
     infantState = db.Column(db.String(50), nullable=False)
+    resolved = db.Column(db.Boolean, default=False)
+    resolvedAt = db.Column(db.DateTime, nullable=True)
     timestamp = db.Column(db.DateTime,default= lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {
-            "level": self.level,
-            "reason": self.reason,
-            "possibleCause":self.possibleCause,
+            "alertLevel": self.level,
+            "alertReason": self.reason,
+            "possibleCauses": [self.possibleCause] if self.possibleCause else [],
             "infantState": self.infantState,
-            "timestamp":self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "resolved": self.resolved,
+            "resolvedAt": self.resolvedAt.strftime("%Y-%m-%d %H:%M:%S") if self.resolvedAt else None,
+            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+class CribCheckout(db.Model):
+    __tablename__ = "crib_checkout"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nurse_id = db.Column(db.Integer, db.ForeignKey("nurse.id"), nullable=False)
+    reason = db.Column(db.String(255), nullable=False)
+    duration_minutes = db.Column(db.Integer, nullable=False)
+    checked_out_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    returned_at = db.Column(db.DateTime, nullable=True)
+
+    nurse = db.relationship("Nurse")
+
+    def to_dict(self):
+        expected_return = self.checked_out_at + timedelta(minutes=self.duration_minutes)
+        return {
+            "id": self.id,
+            "checkedOutBy": self.nurse.name if self.nurse else None,
+            "reason": self.reason,
+            "checkedOutAt": self.checked_out_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "expectedReturnAt": expected_return.strftime("%Y-%m-%d %H:%M:%S"),
+            "returnedAt": self.returned_at.strftime("%Y-%m-%d %H:%M:%S") if self.returned_at else None
         }
 

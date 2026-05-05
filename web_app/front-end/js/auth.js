@@ -2,11 +2,11 @@
 async function requireLogin() {
     const session = await API.checkSession();
     if (!session.loggedIn) {
-        window.location.href = "index.html";
+        window.location.href = "/login";
     }
 }
 
 async function handleLogout() {
     await API.logout();
-    window.location.href = "index.html";
+    window.location.href = "/login";
 }

@@ -40,7 +40,7 @@
         async function checkExisting() {
             const session = await API.checkSession();
             if (session.loggedIn) {
-                window.location.href = "dashboard.html";
+                window.location.href = "/dashboard";
             }
         }
         checkExisting();
@@ -59,7 +59,7 @@
             const result = await API.login(username, password);
 
             if (result.success) {
-                window.location.href = "dashboard.html";
+                window.location.href = "/dashboard";
             } else {
                 errorDiv.textContent = result.message || "Invalid username or password.";
                 errorDiv.classList.remove("d-none");

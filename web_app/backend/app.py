@@ -11,7 +11,7 @@ from extensions import bcrypt, jwt
 from dotenv import load_dotenv
 load_dotenv()
 
-app = Flask(__name__,instance_path="/tmp")
+app = Flask(__name__, instance_path="/tmp", static_folder="../front-end", static_url_path="")
 
 # JWT config---------------------------------------
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")
@@ -50,7 +50,7 @@ app.register_blueprint(piRoute)
 # basic route----------------------------------------
 @app.route("/")
 def home():
-    return redirect(url_for("frontRoute.login"))
+    return redirect(url_for("frontRoute.loginPage"))
 
 # main -----------------------------------------------
 if __name__ == "__main__":
