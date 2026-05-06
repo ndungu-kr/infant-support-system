@@ -29,7 +29,7 @@ def rfidTap():
         checkin = CheckInHistory(
             nurse_id = nurse.id,
             timestamp = datetime.now()
-
+        )
         db.session.add(checkin)
         db.session.commit()
 
