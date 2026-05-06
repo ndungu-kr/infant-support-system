@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, current_app
 from database import db
 from extensions import bcrypt
 from backend.models import Nurse, InfantStatusHistory, CheckInHistory, AlertHistory, CribCheckout
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from flask_jwt_extended import jwt_required,create_access_token,get_jwt
 import re
 

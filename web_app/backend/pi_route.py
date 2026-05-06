@@ -91,7 +91,7 @@ def telemetry():
 @piRoute.route("/pi-crib-status", methods=["GET"])
 def piCribStatus():
     from models import CribCheckout
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta
 
     checkout = CribCheckout.query.filter_by(returned_at=None).order_by(CribCheckout.id.desc()).first()
 
@@ -102,7 +102,7 @@ def piCribStatus():
         }), 200
 
     expected_return = checkout.checked_out_at + timedelta(minutes=checkout.duration_minutes)
-    expired = datetime.now(timezone.utc) > expected_return
+    expired = datetime.now() > expected_return
 
     return jsonify({
         "checkedOut": True,
