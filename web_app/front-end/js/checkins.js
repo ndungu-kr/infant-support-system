@@ -23,7 +23,7 @@ async function loadCheckins() {
         const row = document.createElement("tr");
 
         // Time
-        const time = new Date(new Date(alert.timestamp).getTime() + 3600000);
+        const time = new Date(new Date(checkin.timestamp).getTime() + 3600000);
         const timeStr = time.toLocaleDateString() + " " + time.toLocaleTimeString();
 
         // Nurse name
