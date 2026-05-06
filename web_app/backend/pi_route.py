@@ -28,8 +28,7 @@ def rfidTap():
     if nurse:
         checkin = CheckInHistory(
             nurse_id = nurse.id,
-            timestamp = datetime.fromisoformat(data["timestamp"].replace("Z","+00:00")).replace(tzinfo=None)
-        )
+            timestamp = datetime.now()
 
         db.session.add(checkin)
         db.session.commit()
@@ -51,7 +50,7 @@ def piAlert():
         reason = data["alertReason"],
         possibleCause = data["possibleCauses"],
         infantState = data["infantState"],
-        timestamp = datetime.fromisoformat(data["timestamp"].replace("Z","+00:00")).replace(tzinfo=None)
+        timestamp = datetime.now()
     )
 
     db.session.add(alert)
@@ -79,7 +78,7 @@ def telemetry():
         light = data["light"],
         loudness = data["loudness"],
         motion = data.get("motion", 0),
-        timestamp = datetime.fromisoformat(data["timestamp"].replace("Z","+00:00")).replace(tzinfo=None)
+        timestamp = datetime.now()
     )
 
     db.session.add(status)
