@@ -49,7 +49,7 @@ async function updateStatus() {
     const alertReason = document.getElementById("alertReason");
     const alertCauses = document.getElementById("alertCauses");
 
-    if (status.alertLevel && status.alertLevel !== "NONE") {
+    if (status.alertLevel && status.alertLevel !== "NONE" && !status.resolved) {
         alertBanner.classList.remove("d-none", "alert-high", "alert-low");
         alertBanner.classList.add("alert-" + status.alertLevel.toLowerCase());
         alertLevel.textContent = status.alertLevel + " ALERT: ";

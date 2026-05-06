@@ -44,16 +44,24 @@ def piAlert():
     if not success:
         return message, 401
     
-    # record alert
-    alert = AlertHistory(
-        level = data["alertLevel"],
-        reason = data["alertReason"],
-        possibleCause = data["possibleCauses"],
-        infantState = data["infantState"],
-        timestamp = datetime.now()
-    )
+    if data["alertLevel"]== "resolved":
+        latestAlert = AlertHistory.query.filter_by(resolved=False).order_by(AlertHistory.id.desc()).first()
 
-    db.session.add(alert)
+        if latestAlert:
+            latestAlert.resolved = True
+            latestAlert.resolvedAt = datetime.now()
+
+    else:  
+        # record alert
+        alert = AlertHistory(
+            level = data["alertLevel"],
+            reason = data["alertReason"],
+            possibleCause = data["possibleCauses"],
+            infantState = data["infantState"],
+            timestamp = datetime.now()
+        )
+
+        db.session.add(alert)
     db.session.commit()
 
     return jsonify({"status": "success"}), 200
