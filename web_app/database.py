@@ -18,7 +18,7 @@ def get_database_uri():
 
 # insert default data (nurses) to the table if the table is empty
 def seed_data():
-    from models import Nurse
+    from backend.models import Nurse
     
     # check if the table is empty
     if Nurse.query.count() == 0:
@@ -36,7 +36,7 @@ def init_db(app):
     db.init_app(app)
 
     # import all the models so create_all() can read and create
-    from models import Nurse, CheckInHistory, InfantStatusHistory, AlertHistory, CribCheckout
+    from backend.models import Nurse, CheckInHistory, InfantStatusHistory, AlertHistory, CribCheckout
 
     with app.app_context():
         db.create_all() # create all imported model tables

@@ -82,6 +82,8 @@ async function updateStatus() {
         status.loudness !== undefined ? formatNoise(status.loudness) : "-";
     document.getElementById("sensorMotion").textContent = 
         status.motion === 1 ? "Detected" : "None";
+        document.getElementById("lastFed").textContent = 
+        status.lastFeedTime != undefined ? status.lastFeedTime : "-";
         document.getElementById("sensorCare").textContent = 
         (status.minutesSinceCare === undefined || status.minutesSinceCare === -1) ? "-" : status.minutesSinceCare + " min";
     document.getElementById("sensorCamera").textContent = 
@@ -105,25 +107,27 @@ async function updateSummary() {
 
 async function updateCribStatus() {
     const crib = await API.getCribStatus();
-
+    console.log("HI");
     const checkoutBanner = document.getElementById("checkoutBanner");
     const checkoutButtonArea = document.getElementById("checkoutButtonArea");
-    const checkoutReasonEl = document.getElementById("checkoutReason");
+    const checkoutReasonEl = document.getElementById("actualCheckoutReason");
     const checkoutCountdown = document.getElementById("checkoutCountdown");
 
     if (crib.checkedOut && !crib.expired) {
+        console.log("INSIDE");
         // Baby is checked out
+        console.log(checkoutBanner.classList.contains("d-none"));
         checkoutBanner.classList.remove("d-none");
         checkoutButtonArea.classList.add("d-none");
 
         const reasons = {
-            feeding: "for feeding",
-            bathing: "for bathing",
-            medical_check: "for medical check",
-            skin_to_skin: "for skin-to-skin contact",
-            other: ""
+            feed: "feed",
+            bath: "bath",
+            medical_check: "medical check",
+            skin_to_skin: "skin-to-skin contact",
+            other: "others"
         };
-        checkoutReasonEl.textContent = reasons[crib.reason] || "";
+        checkoutReasonEl.textContent = reasons[crib.reason] || "others";
 
         if (crib.expectedReturnAt) {
             const remaining = new Date(crib.expectedReturnAt) - new Date();
@@ -158,7 +162,7 @@ async function checkPendingCheckins() {
 // --- Actions ---
 
 async function handleCribCheckout() {
-    const reason = document.getElementById("checkoutReason").value;
+    const reason = document.getElementById("actualCheckoutReason").value;
     const duration = parseInt(document.getElementById("checkoutDuration").value);
 
     await API.cribCheckout(reason, duration);

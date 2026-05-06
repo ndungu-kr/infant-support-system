@@ -1,7 +1,7 @@
-from flask import Blueprint, jsonify, request, send_from_directory
+from flask import Blueprint, jsonify, request, current_app
 from database import db
 from extensions import bcrypt
-from models import Nurse, InfantStatusHistory, CheckInHistory, AlertHistory, CribCheckout
+from backend.models import Nurse, InfantStatusHistory, CheckInHistory, AlertHistory, CribCheckout
 from datetime import datetime, timezone, timedelta
 from flask_jwt_extended import jwt_required,create_access_token,get_jwt
 import re
@@ -20,7 +20,7 @@ def validate_input(input):
 # return the latest telemetry data + online flag (if the last telemetry < 60s ago)
 @frontRoute.route("/login")
 def loginPage():
-    return send_from_directory("../front-end", "index.html")
+    return current_app.send_static_file("index.html")
 
 @frontRoute.route("/api/login", methods=["POST"])
 def loginApi():
@@ -43,13 +43,13 @@ def loginApi():
 @frontRoute.route("/api/status")
 @jwt_required()
 def status():
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     statusHistory = InfantStatusHistory.query.order_by(InfantStatusHistory.id.desc()).first()
     
     if not statusHistory:
         return jsonify({}), 200
     
-    diff = (now - statusHistory.timestamp.replace(tzinfo=timezone.utc)).total_seconds()
+    diff = (now - statusHistory.timestamp).total_seconds()
     print("DIFF:", diff, "NOW:", now, "TIMESTAMP:", statusHistory.timestamp)
 
     latestAlert = AlertHistory.query.filter_by(resolved=False).order_by(AlertHistory.id.desc()).first()
@@ -60,13 +60,25 @@ def status():
     else:
         minutesSinceCare = -1
 
+    lastfeed = CheckInHistory.query.filter_by(action = "feed").order_by(CheckInHistory.id.desc()).first()
+
+    if lastfeed:
+        lastfeedDiffSec = (now - lastfeed.timestamp).total_seconds()
+        hours = int(lastfeedDiffSec // 3600)
+        minutes = int((lastfeedDiffSec % 3600) // 60)
+    else:
+        hours = None
+        minutes = None
+
+
     statusHistoryDict = statusHistory.to_dict()
     statusHistoryDict.update({
         "online": diff <= 60,
         "alertLevel": latestAlert.level if latestAlert else "NONE",
         "alertReason": latestAlert.reason if latestAlert else "",
         "possibleCauses": [latestAlert.possibleCause] if latestAlert and latestAlert.possibleCause else [],
-        "minutesSinceCare": minutesSinceCare
+        "minutesSinceCare": minutesSinceCare,
+        "lastFeedTime": None if hours is None or minutes is None else f"{hours}h {minutes}m ago"
     })
 
     return jsonify(statusHistoryDict), 200    
@@ -211,8 +223,8 @@ def cribStatus():
         }), 200
 
     expected_return = checkout.checked_out_at + timedelta(minutes=checkout.duration_minutes)
-    expired = datetime.now(timezone.utc) > expected_return
-
+    expired = datetime.now() > expected_return
+    
     return jsonify({
         "checkedOut": True,
         "reason": checkout.reason,
@@ -238,8 +250,17 @@ def cribCheckout():
     checkout = CribCheckout(
         nurse_id=int(nurse_id),
         reason=reason,
-        duration_minutes=duration_minutes
+        duration_minutes=duration_minutes,
+        checked_out_at = datetime.now()
     )
+
+    checkin = CheckInHistory(
+        nurse_id=int(nurse_id),
+        action=reason,
+        timestamp=datetime.now()
+    )
+
+    db.session.add(checkin)
     db.session.add(checkout)
     db.session.commit()
 
@@ -254,24 +275,24 @@ def cribReturn():
     if not checkout:
         return jsonify({"success": False, "error": "Baby is not checked out"}), 400
 
-    checkout.returned_at = datetime.now(timezone.utc)
+    checkout.returned_at = datetime.now()
     db.session.commit()
 
     return jsonify({"success": True}), 200
 
 @frontRoute.route("/dashboard")
 def dashboardPage():
-    return send_from_directory("../front-end", "dashboard.html")
+    return current_app.send_static_file("dashboard.html")
 
 @frontRoute.route("/history")
 def historyPage():
-    return send_from_directory("../front-end", "history.html")
+    return current_app.send_static_file("history.html")
 
 @frontRoute.route("/alerts")
 def alertsPage():
-    return send_from_directory("../front-end", "alerts.html")
+    return current_app.send_static_file("alerts.html")
 
 @frontRoute.route("/checkins")
 def checkinsPage():
-    return send_from_directory("../front-end", "checkins.html")
+    return current_app.send_static_file("checkins.html")
 

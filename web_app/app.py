@@ -3,15 +3,16 @@ from flask import Flask, redirect, url_for, jsonify
 from datetime import timedelta
 
 from database import init_db
-from routes.frontend_route import frontRoute, logoutTokenList
-from routes.pi_route import piRoute
+from backend.frontend_route import frontRoute, logoutTokenList
+from backend.pi_route import piRoute
 from extensions import bcrypt, jwt
 
 # read .env into os environment (ignore if found nothing)
 from dotenv import load_dotenv
 load_dotenv()
 
-app = Flask(__name__, instance_path="/tmp", static_folder="../front-end", static_url_path="")
+frontend_path = os.path.join(os.path.dirname(__file__), "front-end")
+app = Flask(__name__, instance_path=os.path.abspath("/tmp"), static_folder=frontend_path, static_url_path="")
 
 # JWT config---------------------------------------
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")

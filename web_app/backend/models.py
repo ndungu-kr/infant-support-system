@@ -1,5 +1,5 @@
 from database import db
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 
 #Nurse table-----------------------------
 class Nurse(db.Model):
@@ -20,7 +20,7 @@ class CheckInHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nurse_id = db.Column(db.Integer, db.ForeignKey("nurse.id"), nullable=False)
     action = db.Column(db.String(100), nullable=True)
-    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now())
 
     # foreign key
     nurse = db.relationship("Nurse", back_populates="checkin_history")
@@ -47,7 +47,7 @@ class InfantStatusHistory(db.Model):
     light = db.Column(db.Integer, nullable=False)
     loudness = db.Column(db.Integer, nullable=False)
     motion = db.Column(db.Integer, default=0)
-    timestamp = db.Column(db.DateTime,default= lambda: datetime.now(timezone.utc))
+    timestamp = db.Column(db.DateTime,default= lambda: datetime.now())
 
     def to_dict(self):
         return {
@@ -75,7 +75,7 @@ class AlertHistory(db.Model):
     infantState = db.Column(db.String(50), nullable=False)
     resolved = db.Column(db.Boolean, default=False)
     resolvedAt = db.Column(db.DateTime, nullable=True)
-    timestamp = db.Column(db.DateTime,default= lambda: datetime.now(timezone.utc))
+    timestamp = db.Column(db.DateTime,default= lambda: datetime.now())
 
     def to_dict(self):
         return {
@@ -95,7 +95,7 @@ class CribCheckout(db.Model):
     nurse_id = db.Column(db.Integer, db.ForeignKey("nurse.id"), nullable=False)
     reason = db.Column(db.String(255), nullable=False)
     duration_minutes = db.Column(db.Integer, nullable=False)
-    checked_out_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    checked_out_at = db.Column(db.DateTime, default=lambda: datetime.now())
     returned_at = db.Column(db.DateTime, nullable=True)
 
     nurse = db.relationship("Nurse")

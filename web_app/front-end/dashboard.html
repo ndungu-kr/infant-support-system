@@ -58,7 +58,7 @@
 
         <!-- Crib Checkout Banner (hidden when baby is in crib) -->
         <div id="checkoutBanner" class="checkout-banner d-none">
-            <strong>Baby out of crib</strong>
+            <strong>Return Baby</strong>
             <span id="checkoutReason"></span>
             <div id="checkoutCountdown" class="mt-1"></div>
             <button class="btn btn-info btn-sm mt-2" onclick="handleCribReturn()">Baby Returned</button>
@@ -75,7 +75,7 @@
                 <!-- Crib Checkout Button -->
                 <div id="checkoutButtonArea" class="d-grid mb-3">
                     <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#checkoutModal">
-                        Baby Out of Crib
+                        Remove Baby from Crib
                     </button>
                 </div>
 
@@ -147,7 +147,7 @@
 
                 <!-- Additional Info -->
                 <div class="row">
-                    <div class="col-md-4 col-6 mb-3">
+                    <div class="col-md-3 col-6 mb-3">
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <i class="bi bi-person-walking text-success fs-4"></i>
@@ -156,7 +156,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-6 mb-3">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clock-history text-secondary fs-4"></i>
+                                <div class="text-muted small">Last Fed</div>
+                                <div class="sensor-value" id="lastFed">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <i class="bi bi-clock-history text-secondary fs-4"></i>
@@ -165,7 +174,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-12 mb-3">
+                    <div class="col-md-3 col-12 mb-3">
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <i class="bi bi-camera-video text-dark fs-4"></i>
@@ -197,17 +206,17 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Baby Out of Crib</h5>
+                    <h5 class="modal-title">Remove Baby from Crib</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Reason</label>
-                        <select class="form-select" id="checkoutReason">
-                            <option value="feeding">Feeding</option>
-                            <option value="bathing">Bathing</option>
-                            <option value="medical_check">Medical Check</option>
-                            <option value="skin_to_skin">Skin-to-Skin Contact</option>
+                        <select class="form-select" id="actualCheckoutReason">
+                            <option value="feed">Feeding</option>
+                            <option value="bath">Bathing</option>
+                            <option value="medical check">Medical Check</option>
+                            <option value="skin to skin">Skin-to-Skin Contact</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
