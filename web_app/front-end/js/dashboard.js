@@ -97,7 +97,7 @@ async function updateSummary() {
     document.getElementById("totalCheckins").textContent = summary.totalCheckinsToday;
 
     if (summary.lastCheckinTime) {
-        const time = new Date(summary.lastCheckinTime);
+        const time =  new Date(new Date(summary.lastCheckinTime).getTime() + 3600000);
         document.getElementById("lastCheckin").textContent = 
             summary.lastCheckinNurse + " at " + time.toLocaleTimeString();
     } else {
