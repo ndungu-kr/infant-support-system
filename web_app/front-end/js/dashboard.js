@@ -178,7 +178,7 @@ async function handleCribCheckout() {
 async function handleCribReturn() {
     await API.cribReturn();
     updateCribStatus();
-    window.location.reload();
+    window.location.reload(true);
 }
 
 async function recordAction(action) {
