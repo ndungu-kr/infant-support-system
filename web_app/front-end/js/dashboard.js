@@ -209,5 +209,5 @@ function refreshAll() {
 // Initial load
 refreshAll();
 
-// Poll every 10 seconds
-setInterval(refreshAll, 5000);
+// Poll every seconds
+setInterval(refreshAll, 1000);
