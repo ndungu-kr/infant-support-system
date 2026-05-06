@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from extensions import verify_payload, SECRET_KEY
-from backend.models import Nurse, CheckInHistory, AlertHistory, InfantStatusHistory
+from backend.models import Nurse, CheckInHistory, AlertHistory, InfantStatusHistory, CribCheckout
 from datetime import datetime
 
 piRoute = Blueprint("piRoute",__name__, url_prefix="/api")
@@ -90,7 +90,6 @@ def telemetry():
 # Return crib checkout status to Pi (HMAC protected)
 @piRoute.route("/pi-crib-status", methods=["GET"])
 def piCribStatus():
-    from models import CribCheckout
     from datetime import datetime, timedelta
 
     checkout = CribCheckout.query.filter_by(returned_at=None).order_by(CribCheckout.id.desc()).first()
