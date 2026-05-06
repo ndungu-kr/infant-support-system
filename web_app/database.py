@@ -23,8 +23,9 @@ def seed_data():
     # check if the table is empty
     if Nurse.query.count() == 0:
         nurses = [
-            Nurse(rfid_tag="asdasd", name="Sarah", username="user1", password=bcrypt.generate_password_hash("abcd1234").decode('utf-8')),
-            Nurse(rfid_tag="asdasd123", name="Berah", username="user2", password=bcrypt.generate_password_hash("abcd1234").decode('utf-8'))
+            Nurse(rfid_tag="1A0074F4EC76", name="Sarah", username="user1", password=bcrypt.generate_password_hash("abcd1234").decode('utf-8')),
+            Nurse(rfid_tag="49005B2AF6CE", name="Emma", username="user2", password=bcrypt.generate_password_hash("abcd1234").decode('utf-8')),
+            Nurse(rfid_tag="510026155C3E", name="Nyamar", username="user3", password=bcrypt.generate_password_hash("abcd1234").decode('utf-8'))
         ]
         db.session.add_all(nurses)
 
