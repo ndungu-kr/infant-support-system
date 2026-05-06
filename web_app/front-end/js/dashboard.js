@@ -130,7 +130,7 @@ async function updateCribStatus() {
         checkoutReasonEl.textContent = reasons[crib.reason] || "others";
 
         if (crib.expectedReturnAt) {
-            const remaining = new Date(crib.expectedReturnAt) - new Date();
+            const remaining = new Date(crib.expectedReturnAt + " UTC") - new Date();
             if (remaining > 0) {
                 const mins = Math.ceil(remaining / 60000);
                 checkoutCountdown.textContent = mins + " minutes remaining";
