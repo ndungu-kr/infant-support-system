@@ -18,14 +18,10 @@ A Flask REST API for the hospital infant monitoring system. Receives telemetry f
 ## Project Structure
 
 ```
-app/
-├── app.py              — Flask app entry point, extension init, blueprint registration
-├── extensions.py       — Shared extensions (db, bcrypt, jwt, HMAC helpers)
-├── database.py         — DB URI config, table creation, seed data
+backend/
 ├── models.py           — SQLAlchemy models (Nurse, CheckInHistory, AlertHistory, InfantStatusHistory)
-└── routes/
-      ├── frontend_route.py   — Routes for the dashboard frontend (JWT protected)
-      └── pi_route.py         — Routes for Raspberry Pi data ingestion (HMAC protected)
+├── frontend_route.py   — Routes for the dashboard frontend (JWT protected)
+└── pi_route.py         — Routes for Raspberry Pi data ingestion (HMAC protected)
 ```
 
 ---

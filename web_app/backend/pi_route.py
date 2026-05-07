@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from extensions import verify_payload, SECRET_KEY
 from backend.models import Nurse, CheckInHistory, AlertHistory, InfantStatusHistory, CribCheckout
-from datetime import datetime
+from datetime import datetime, timezone
 
 piRoute = Blueprint("piRoute",__name__, url_prefix="/api")
 
